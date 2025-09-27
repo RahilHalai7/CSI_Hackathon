@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'login.dart';
-import 'home.dart';
-import 'mentor_dashboard.dart';
-import 'strivers_dashboard.dart';
+import 'package:strivespark/screens/admin/dashboard.dart';
+import 'screens/common/login.dart';
+import 'screens/entreprenuer/dashboard.dart';
+import 'screens/mentor/dashboard.dart';
+import 'screens/entreprenuer/dashboard.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -78,14 +79,14 @@ class AuthWrapper extends StatelessWidget {
               print('User document does not exist for UID: ${user.uid}');
               // Optionally create the user document here
               _createUserDocument(user);
-              return const HomeScreen(); // Default to home screen
+              return const EntrepreneurDashboard(); // Default to home screen
             }
 
             // Extract user data and role
             final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
             if (userData == null) {
               print('User data is null for UID: ${user.uid}');
-              return const HomeScreen();
+              return const EntrepreneurDashboard();
             }
 
             final userRole = userData['role'] as String?;
@@ -96,13 +97,13 @@ class AuthWrapper extends StatelessWidget {
               case 'mentor':
                 print('Routing to MentorDashboard');
                 return const MentorDashboard();
-              case 'strivers':
-                print('Routing to StriversDashboard');
-                return const StriversDashboard();
+              case 'admin':
+                print('Routing to AdminDashboard');
+                return const AdminDashboard();
               case 'user':
               default:
-                print('Routing to HomeScreen (role: $userRole)');
-                return const HomeScreen();
+                print('Routing to EntrepreneurDashboard (role: $userRole)');
+                return const EntrepreneurDashboard();
             }
           },
         );
