@@ -1,24 +1,21 @@
-CSI Hackathon – OCR and ASR with Google Cloud
+CSI Hackathon – OCR + ASR Toolkit
 
 Overview
 - Extract text from images using Google Cloud Vision (OCR).
-- Transcribe speech from audio files using Google Cloud Speech-to-Text (ASR).
-- Quick auth check to verify credentials are loaded.
+- Transcribe speech with Google Cloud Speech‑to‑Text (ASR) and optional speaker diarization.
+- Multi‑language ASR tested for: English (`en-US`), Hindi (`hi-IN`), Marathi (`mr-IN`), Odia (`or-IN`), Gujarati (`gu-IN`).
 
-Project Structure
-- `ocr.py` – Image OCR via Google Cloud Vision.
-- `asr.py` – Audio transcription via Google Cloud Speech-to-Text; auto converts MP3/M4A to WAV.
-- `authentication.py` – Prints the authenticated service account email to confirm setup.
-- `main.py` – Placeholder for orchestration (currently empty).
-- `images/` – Sample images for testing.
-- `audio/` – Sample audio files for testing.
+Features
+- Auto‑convert non‑WAV audio (MP3/M4A/MP4) to mono 16 kHz WAV via FFmpeg.
+- Speaker‑attributed transcripts when `--diarize` is enabled (outputs lines like `Person 1: ...`).
+- Language normalization accepts short codes (e.g., `en`, `hi`, `mr`, `gu`, `or`, `odia`).
+- Saves transcripts under `pdf_text/` with timestamped filenames by default.
 
 Prerequisites
-- Python 3.9+ recommended.
-- A Google Cloud project with the Vision API and Speech-to-Text API enabled.
-- A Service Account key (JSON) with permissions for Vision and Speech.
-- `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to the key file.
-- FFmpeg installed and available on PATH (required by `pydub` for audio conversion).
+- Python 3.9+.
+- Google Cloud project with Speech‑to‑Text and Vision APIs enabled.
+- Service Account JSON key with permissions for Speech/Vision.
+- FFmpeg installed and on PATH (required for non‑WAV inputs).
 
 Setup (Windows / PowerShell)
 1) Create and activate a virtual environment:
@@ -30,46 +27,69 @@ Setup (Windows / PowerShell)
    - `$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\your-key.json"`
    Or persistently:
    - `setx GOOGLE_APPLICATION_CREDENTIALS "C:\\path\\to\\your-key.json"`
-4) Install FFmpeg:
-   - Download from https://www.gyan.dev/ffmpeg/builds/ or use a package manager.
-   - Add the `bin` folder to your PATH and verify with `ffmpeg -version`.
+4) Install FFmpeg and verify:
+   - Add `ffmpeg` to PATH and run `ffmpeg -version`.
 
-Usage
-- Verify authentication:
-  - `python authentication.py`
-  - Expected output includes the service account email.
-- Run OCR on an image:
-  - Update `image_path` in `ocr.py` or modify the script to pass a path.
-  - `python ocr.py`
-- Transcribe audio:
-  - Update `audio_path` in `asr.py`.
-  - `python asr.py`
+Project Structure
+- `asr.py` — Audio transcription via Google Cloud STT; supports diarization; converts audio to WAV mono 16 kHz.
+- `pdf_to_txt.py` — Extracts text from PDFs.
+- `oldscripts/ocr.py` — Image OCR via Google Cloud Vision.
+- `audio/` — Sample audio inputs.
+- `pdf_text/` — Saved transcripts and extracted text.
 
-Google Cloud Speech-to-Text — ASR
-- Install deps: `pip install -r requirements.txt`
-- Set `GOOGLE_APPLICATION_CREDENTIALS` to your service account JSON key:
-  - Current session: `$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\your-key.json"`
-  - Persistent: `setx GOOGLE_APPLICATION_CREDENTIALS "C:\\path\\to\\your-key.json"`
-- Ensure FFmpeg is installed and on PATH (`ffmpeg -version`), used for audio conversion.
-- Run transcription (auto-converts to mono 16kHz WAV):
-  - `python asr.py --input audio/test_audio.mp3 --language en-US`
-  - Marathi example: `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN`
-  - Optional: save to a file `--output pdf_text/marathi_transcript.txt`
-- Output is saved by default under `pdf_text/` with a timestamped filename if `--output` is not provided.
+ASR Usage
+- Basic transcription:
+  - `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN`
+- Save to a specific file:
+  - `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN --output pdf_text/marathi_transcript.txt`
 
-Notes
-- `asr.py` supports `.wav`, `.mp3`, and `.m4a`. Non-WAV inputs are converted to mono 16kHz WAV for best results.
-- If you receive `403` or permissions errors, ensure the Speech-to-Text API is enabled and the service account has correct roles.
-- If `pydub` complains about FFmpeg not found, confirm PATH includes the FFmpeg `bin` directory.
+Speaker Diarization
+- Enable diarization and provide hints:
+  - `python asr.py --input audio/Audio_Hindi_sample2.wav --language hi-IN --diarize --min-speakers 2 --max-speakers 4`
+- When enabled, the output includes speaker‑labeled lines like:
+  - `Person 1: ...`
+  - `Person 2: ...`
+- If hints are omitted, the script uses defaults (`min=2`, `max=4`).
+
+Language Examples
+- English (`en-US`):
+  - `python asr.py --input audio/test_audio_en.wav --language en-US --diarize --min-speakers 1 --max-speakers 3`
+- Hindi (`hi-IN`):
+  - `python asr.py --input audio/Audio_Hindi_sample2.wav --language hi-IN --diarize --min-speakers 2 --max-speakers 4`
+- Marathi (`mr-IN`):
+  - `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN --diarize --min-speakers 2 --max-speakers 4`
+- Odia (`or-IN`):
+  - `python asr.py --input audio/Audio_Odia_sample2.wav --language or-IN --diarize --min-speakers 2 --max-speakers 6`
+- Gujarati (`gu-IN`):
+  - `python asr.py --input audio/Audio_Gujrati_sample1.wav --language gu-IN --diarize --min-speakers 2 --max-speakers 4`
+
+Non‑WAV Inputs (MP3/M4A/MP4)
+- The script converts inputs to mono 16 kHz WAV automatically if FFmpeg is on PATH.
+- To pre‑convert manually:
+  - `ffmpeg -y -i input.mp4 -vn -ac 1 -ar 16000 audio/converted.wav`
+
+Saved Outputs
+- By default, transcripts are saved to `pdf_text/<input_name>_google_stt_<timestamp>.txt`.
+- Use `--output` to specify a custom path.
+
+OCR Usage
+- Run OCR on an image (see `oldscripts/ocr.py`):
+  - Update the path in the script or adapt to take CLI arguments.
+  - `python oldscripts/ocr.py`
 
 Troubleshooting
-- Credentials not found:
-  - Ensure `GOOGLE_APPLICATION_CREDENTIALS` points to a valid JSON key file.
-  - Confirm the key has permissions for Vision and Speech.
-- FFmpeg issues:
-  - Run `ffmpeg -version`; if it fails, reinstall or fix PATH.
-- API permissions:
-  - Verify APIs are enabled in Google Cloud Console and IAM roles are assigned.
+- Credentials warnings:
+  - Ensure `GOOGLE_APPLICATION_CREDENTIALS` points to a valid service account key and APIs are enabled.
+- FFmpeg not found:
+  - Install FFmpeg and verify `ffmpeg -version` works. Non‑WAV inputs require FFmpeg.
+- Unsupported model errors:
+  - The script uses Google’s default model selection per language (e.g., `gu-IN` works without specifying `latest_long`).
+- Diarization detects 0–1 speakers:
+  - Increase `--min-speakers` / `--max-speakers` and ensure clean audio. Some languages return sparse speaker tags; transcripts still output and can be post‑processed.
+
+Notes
+- Diarization quality varies by audio clarity and language; the script groups words by `speaker_tag` into labeled lines.
+- For long audio, the script splits into ~58‑second chunks to stay within synchronous STT limits.
 
 License
-- Internal hackathon project; add a license if needed.
+- Internal hackathon project; add a license if distributing publicly.
