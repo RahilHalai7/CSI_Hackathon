@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Unfair Advantage - Mentor Dashboard</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope:wght@400;500;700;800" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#13a4ec",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101c22",
+            "foreground-light": "#101c22",
+            "foreground-dark": "#f6f7f8",
+            "subtle-light": "#e4e7e9",
+            "subtle-dark": "#212e35",
+            "muted-light": "#617c89",
+            "muted-dark": "#9cb3c1"
+          },
+          fontFamily: {
+            "display": ["Manrope", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .font-display { font-family: "Manrope", sans-serif; }
+  </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-foreground-light dark:text-foreground-dark">
+<div class="flex min-h-screen">
+<aside class="w-64 bg-white dark:bg-background-dark border-r border-subtle-light dark:border-subtle-dark p-6 flex flex-col justify-between">
+<div>
+<div class="mb-8">
+<h1 class="text-xl font-bold text-foreground-light dark:text-foreground-dark">The Unfair Advantage</h1>
+<p class="text-sm text-muted-light dark:text-muted-dark">Mentor</p>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary font-semibold" href="#">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"></path>
+</svg>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-muted-light dark:text-muted-dark hover:bg-subtle-light dark:hover:bg-subtle-dark hover:text-foreground-light dark:hover:text-foreground-dark transition-colors duration-200" href="#">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"></path>
+</svg>
+<span>Students</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-muted-light dark:text-muted-dark hover:bg-subtle-light dark:hover:bg-subtle-dark hover:text-foreground-light dark:hover:text-foreground-dark transition-colors duration-200" href="#">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"></path>
+</svg>
+<span>Mentorship</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-muted-light dark:text-muted-dark hover:bg-subtle-light dark:hover:bg-subtle-dark hover:text-foreground-light dark:hover:text-foreground-dark transition-colors duration-200" href="#">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M224,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h64a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z"></path>
+</svg>
+<span>Resources</span>
+</a>
+</nav>
+</div>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-muted-light dark:text-muted-dark hover:bg-subtle-light dark:hover:bg-subtle-dark hover:text-foreground-light dark:hover:text-foreground-dark transition-colors duration-200" href="#">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z"></path>
+</svg>
+<span>Settings</span>
+</a>
+</aside>
+<main class="flex-1 p-8">
+<header class="mb-8">
+<h1 class="text-4xl font-bold text-foreground-light dark:text-foreground-dark">Dashboard</h1>
+<p class="text-muted-light dark:text-muted-dark mt-1">Review and manage student submissions</p>
+</header>
+<div class="space-y-12">
+<section>
+<h2 class="text-2xl font-bold text-foreground-light dark:text-foreground-dark mb-4">New Submissions</h2>
+<div class="bg-white dark:bg-subtle-dark rounded-lg overflow-hidden border border-subtle-light dark:border-subtle-dark">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-background-light dark:bg-background-dark">
+<tr>
+<th class="p-4 font-semibold text-sm w-1/4">Student</th>
+<th class="p-4 font-semibold text-sm w-2/4">Idea</th>
+<th class="p-4 font-semibold text-sm w-1/4">Industry</th>
+<th class="p-4 font-semibold text-sm">Priority</th>
+<th class="p-4 font-semibold text-sm text-right">Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-t border-subtle-light dark:border-subtle-dark">
+<td class="p-4 text-foreground-light dark:text-foreground-dark">Aarav Sharma</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Eco-friendly packaging solutions for small businesses</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Sustainability</td>
+<td class="p-4">
+<span class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-red-500/10 text-red-500">High</span>
+</td>
+<td class="p-4 text-right">
+<button class="bg-primary text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors">Review</button>
+</td>
+</tr>
+<tr class="border-t border-subtle-light dark:border-subtle-dark">
+<td class="p-4 text-foreground-light dark:text-foreground-dark">Priya Patel</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">AI-powered personalized learning platform</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Education</td>
+<td class="p-4">
+<span class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-yellow-500/10 text-yellow-500">Medium</span>
+</td>
+<td class="p-4 text-right">
+<button class="bg-primary text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors">Review</button>
+</td>
+</tr>
+<tr class="border-t border-subtle-light dark:border-subtle-dark">
+<td class="p-4 text-foreground-light dark:text-foreground-dark">Vikram Singh</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Mobile app for local farmers to sell produce directly</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Agriculture</td>
+<td class="p-4">
+<span class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-green-500/10 text-green-500">Low</span>
+</td>
+<td class="p-4 text-right">
+<button class="bg-primary text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors">Review</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section>
+<h2 class="text-2xl font-bold text-foreground-light dark:text-foreground-dark mb-4">In Progress</h2>
+<div class="bg-white dark:bg-subtle-dark rounded-lg overflow-hidden border border-subtle-light dark:border-subtle-dark">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-background-light dark:bg-background-dark">
+<tr>
+<th class="p-4 font-semibold text-sm w-1/4">Student</th>
+<th class="p-4 font-semibold text-sm w-2/4">Idea</th>
+<th class="p-4 font-semibold text-sm w-1/4">Industry</th>
+<th class="p-4 font-semibold text-sm">Priority</th>
+<th class="p-4 font-semibold text-sm text-right">Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-t border-subtle-light dark:border-subtle-dark">
+<td class="p-4 text-foreground-light dark:text-foreground-dark">Anika Verma</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Subscription box for artisanal Indian crafts</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">E-commerce</td>
+<td class="p-4">
+<span class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-red-500/10 text-red-500">High</span>
+</td>
+<td class="p-4 text-right">
+<button class="bg-primary/10 text-primary dark:bg-primary/20 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">Provide Feedback</button>
+</td>
+</tr>
+<tr class="border-t border-subtle-light dark:border-subtle-dark">
+<td class="p-4 text-foreground-light dark:text-foreground-dark">Rohan Kapoor</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Virtual reality tours of historical sites in India</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Tourism</td>
+<td class="p-4">
+<span class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-yellow-500/10 text-yellow-500">Medium</span>
+</td>
+<td class="p-4 text-right">
+<button class="bg-primary/10 text-primary dark:bg-primary/20 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">Provide Feedback</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section>
+<h2 class="text-2xl font-bold text-foreground-light dark:text-foreground-dark mb-4">Completed</h2>
+<div class="bg-white dark:bg-subtle-dark rounded-lg overflow-hidden border border-subtle-light dark:border-subtle-dark">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-background-light dark:bg-background-dark">
+<tr>
+<th class="p-4 font-semibold text-sm w-1/4">Student</th>
+<th class="p-4 font-semibold text-sm w-2/4">Idea</th>
+<th class="p-4 font-semibold text-sm w-1/4">Industry</th>
+<th class="p-4 font-semibold text-sm">Priority</th>
+<th class="p-4 font-semibold text-sm text-right">Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-t border-subtle-light dark:border-subtle-dark">
+<td class="p-4 text-foreground-light dark:text-foreground-dark">Ishaan Malhotra</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Online platform for freelance writers in regional languages</td>
+<td class="p-4 text-muted-light dark:text-muted-dark">Content Creation</td>
+<td class="p-4">
+<span class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-red-500/10 text-red-500">High</span>
+</td>
+<td class="p-4 text-right">
+<button class="bg-primary/10 text-primary dark:bg-primary/20 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">View Feedback</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+
+</body></html>
