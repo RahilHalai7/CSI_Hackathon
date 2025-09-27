@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "717904034327",
+    "project_id": "strivespark-86c76",
+    "storage_bucket": "strivespark-86c76.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717904034327:android:977b1c465ee060c6007a52",
+        "android_client_info": {
+          "package_name": "com.example.strivespark"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFtODOACYF2ZyPoSz3AseTlHrv1Ej86N8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
