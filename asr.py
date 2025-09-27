@@ -1,6 +1,19 @@
 import os
 from google.cloud import speech
 from pydub import AudioSegment
+from google.oauth2 import service_account
+
+def _load_credentials():
+    """Load service account credentials from env or local swift-key.json."""
+    env_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if env_path and os.path.isfile(env_path):
+        return None
+    repo_root = os.path.dirname(os.path.abspath(__file__))
+    local_key = os.path.join(repo_root, "swift-key.json")
+    if os.path.isfile(local_key):
+        return service_account.Credentials.from_service_account_file(local_key)
+    return None
+
 
 def convert_to_wav(audio_path: str) -> str:
     """Convert MP3 or M4A to WAV format for Google Speech-to-Text."""
@@ -20,7 +33,8 @@ def convert_to_wav(audio_path: str) -> str:
 
 def transcribe_audio(audio_path: str) -> str:
     """Transcribe speech from an audio file using Google Cloud Speech-to-Text."""
-    client = speech.SpeechClient()
+    credentials = _load_credentials()
+    client = speech.SpeechClient(credentials=credentials) if credentials else speech.SpeechClient()
 
     # Convert audio if needed
     wav_path = convert_to_wav(audio_path)
