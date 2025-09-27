@@ -34,7 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        // Navigate to root and let AuthWrapper handle role-based routing
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -70,7 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        // Navigate to root and let AuthWrapper handle role-based routing
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } catch (e) {
       setState(() {

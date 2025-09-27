@@ -52,7 +52,7 @@ class _SignupScreenState extends State<SignupScreen> {
         // Update user profile with name
         await user.updateDisplayName(_nameController.text.trim());
 
-        // Create profile in Firestore
+        // Create or overwrite profile in Firestore
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'name': _nameController.text.trim(),
           'role': _selectedRole,
@@ -62,7 +62,14 @@ class _SignupScreenState extends State<SignupScreen> {
       }
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        // Route by role
+        if (_selectedRole == 'mentor') {
+          Navigator.pushReplacementNamed(context, '/mentorHome');
+        } else if (_selectedRole == 'strivers') {
+          Navigator.pushReplacementNamed(context, '/striversHome');
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -509,10 +516,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         DropdownMenuItem(
                           value: 'mentor',
                           child: Text('Mentor', style: TextStyle(color: Colors.white)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'strivers',
-                          child: Text('Strivers', style: TextStyle(color: Colors.white)),
                         ),
                       ],
                       onChanged: (String? newValue) {

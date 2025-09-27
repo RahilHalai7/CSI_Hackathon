@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class MentorDashboard extends StatefulWidget {
+  const MentorDashboard({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MentorDashboard> createState() => _MentorDashboardState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final user = FirebaseAuth.instance.currentUser;
+class _MentorDashboardState extends State<MentorDashboard> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const UserDashboardTab(),
-    const MySubmissionsTab(),
-    const MyProgressTab(),
-    const ProfileTab(),
+    const DashboardTab(),
+    const StudentsTab(),
+    const MentorshipTab(),
+    const ResourcesTab(),
     const SettingsTab(),
   ];
 
@@ -56,27 +56,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.flash_on,
-                            size: 32,
-                            color: const Color(0xFF3B82F6),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'StriveSpark',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'StriveSpark',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'User Portal',
+                        'Mentor',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -93,9 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(16),
                     children: [
                       _buildNavItem(0, Icons.dashboard, 'Dashboard'),
-                      _buildNavItem(1, Icons.assignment, 'My Submissions'),
-                      _buildNavItem(2, Icons.analytics, 'Progress'),
-                      _buildNavItem(3, Icons.person, 'Profile'),
+                      _buildNavItem(1, Icons.people, 'Students'),
+                      _buildNavItem(2, Icons.psychology, 'Mentorship'),
+                      _buildNavItem(3, Icons.folder, 'Resources'),
                     ],
                   ),
                 ),
@@ -158,13 +148,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class UserDashboardTab extends StatelessWidget {
-  const UserDashboardTab({super.key});
+class DashboardTab extends StatelessWidget {
+  const DashboardTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -180,7 +168,7 @@ class UserDashboardTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Track your submissions and progress',
+            'Review and manage student submissions',
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 16,
@@ -188,110 +176,18 @@ class UserDashboardTab extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // Welcome Card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF3B82F6),
-                  const Color(0xFF3B82F6).withOpacity(0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome back, ${user?.displayName ?? 'User'}!',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Ready to submit your next big idea?',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Quick Stats
-          Row(
-            children: [
-              Expanded(child: _buildStatCard('Total Submissions', '12', Icons.assignment, const Color(0xFF3B82F6))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('In Review', '3', Icons.pending, const Color(0xFFF59E0B))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Approved', '8', Icons.check_circle, const Color(0xFF10B981))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Feedback', '1', Icons.chat_bubble, const Color(0xFF8B5CF6))),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
           // Content
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildSubmissionSection('Recent Submissions', _getRecentSubmissions()),
+                  _buildSubmissionSection('New Submissions', _getNewSubmissions()),
                   const SizedBox(height: 32),
-                  _buildSubmissionSection('Pending Review', _getPendingSubmissions()),
+                  _buildSubmissionSection('In Progress', _getInProgressSubmissions()),
+                  const SizedBox(height: 32),
+                  _buildSubmissionSection('Completed', _getCompletedSubmissions()),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 24),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -303,23 +199,13 @@ class UserDashboardTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('New Submission'),
-            ),
-          ],
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
         const SizedBox(height: 16),
         Container(
@@ -342,9 +228,9 @@ class UserDashboardTab extends StatelessWidget {
                 ),
                 child: const Row(
                   children: [
+                    Expanded(flex: 2, child: Text('Student', style: TextStyle(fontWeight: FontWeight.w600))),
                     Expanded(flex: 3, child: Text('Idea', style: TextStyle(fontWeight: FontWeight.w600))),
                     Expanded(flex: 2, child: Text('Industry', style: TextStyle(fontWeight: FontWeight.w600))),
-                    Expanded(flex: 1, child: Text('Status', style: TextStyle(fontWeight: FontWeight.w600))),
                     Expanded(flex: 1, child: Text('Priority', style: TextStyle(fontWeight: FontWeight.w600))),
                     Expanded(flex: 1, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.w600))),
                   ],
@@ -360,11 +246,6 @@ class UserDashboardTab extends StatelessWidget {
   }
 
   Widget _buildSubmissionRow(Map<String, dynamic> submission) {
-    Color statusColor = Colors.grey;
-    if (submission['status'] == 'Approved') statusColor = const Color(0xFF10B981);
-    if (submission['status'] == 'In Review') statusColor = const Color(0xFFF59E0B);
-    if (submission['status'] == 'Needs Revision') statusColor = const Color(0xFFEF4444);
-
     Color priorityColor = Colors.green;
     if (submission['priority'] == 'High') priorityColor = Colors.red;
     if (submission['priority'] == 'Medium') priorityColor = Colors.orange;
@@ -377,10 +258,17 @@ class UserDashboardTab extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
+            flex: 2,
+            child: Text(
+              submission['student'],
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
             flex: 3,
             child: Text(
               submission['idea'],
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: TextStyle(color: Colors.grey[700]),
             ),
           ),
           Expanded(
@@ -388,24 +276,6 @@ class UserDashboardTab extends StatelessWidget {
             child: Text(
               submission['industry'],
               style: TextStyle(color: Colors.grey[700]),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                submission['status'],
-                style: TextStyle(
-                  color: statusColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
           ),
           Expanded(
@@ -433,7 +303,7 @@ class UserDashboardTab extends StatelessWidget {
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3B82F6),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
               child: Text(
@@ -454,54 +324,66 @@ class UserDashboardTab extends StatelessWidget {
     );
   }
 
-  List<Map<String, dynamic>> _getRecentSubmissions() {
+  List<Map<String, dynamic>> _getNewSubmissions() {
     return [
       {
-        'idea': 'AI-powered fitness coaching app',
-        'industry': 'Health & Fitness',
-        'status': 'Approved',
-        'priority': 'High',
-        'link': 'View Details',
-      },
-      {
-        'idea': 'Sustainable packaging for e-commerce',
+        'student': 'Aarav Sharma',
+        'idea': 'Eco-friendly packaging solutions for small businesses',
         'industry': 'Sustainability',
-        'status': 'In Review',
-        'priority': 'Medium',
-        'action': 'Edit',
+        'priority': 'High',
+        'action': 'Review',
       },
       {
-        'idea': 'Virtual cooking classes platform',
+        'student': 'Priya Patel',
+        'idea': 'AI-powered personalized learning platform',
         'industry': 'Education',
-        'status': 'Needs Revision',
+        'priority': 'Medium',
+        'action': 'Review',
+      },
+      {
+        'student': 'Vikram Singh',
+        'idea': 'Mobile app for local farmers to sell produce directly',
+        'industry': 'Agriculture',
         'priority': 'Low',
-        'action': 'Revise',
+        'action': 'Review',
       },
     ];
   }
 
-  List<Map<String, dynamic>> _getPendingSubmissions() {
+  List<Map<String, dynamic>> _getInProgressSubmissions() {
     return [
       {
-        'idea': 'Local artisan marketplace',
+        'student': 'Anika Verma',
+        'idea': 'Subscription box for artisanal Indian crafts',
         'industry': 'E-commerce',
-        'status': 'In Review',
         'priority': 'High',
-        'link': 'Track Progress',
+        'link': 'Provide Feedback',
       },
       {
-        'idea': 'Smart home energy management',
-        'industry': 'Technology',
-        'status': 'In Review',
+        'student': 'Rohan Kapoor',
+        'idea': 'Virtual reality tours of historical sites in India',
+        'industry': 'Tourism',
         'priority': 'Medium',
-        'link': 'Track Progress',
+        'link': 'Provide Feedback',
+      },
+    ];
+  }
+
+  List<Map<String, dynamic>> _getCompletedSubmissions() {
+    return [
+      {
+        'student': 'Ishaan Malhotra',
+        'idea': 'Online platform for freelance writers in regional languages',
+        'industry': 'Content Creation',
+        'priority': 'High',
+        'link': 'View Feedback',
       },
     ];
   }
 }
 
-class MySubmissionsTab extends StatelessWidget {
-  const MySubmissionsTab({super.key});
+class StudentsTab extends StatelessWidget {
+  const StudentsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -510,48 +392,25 @@ class MySubmissionsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'My Submissions',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Manage all your idea submissions',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('New submission form coming soon!')),
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('New Submission'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
+          Text(
+            'Students',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Manage your mentees and their progress',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: 32),
           const Center(
             child: Text(
-              'Submissions management interface coming soon!',
+              'Students management features coming soon!',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ),
@@ -561,8 +420,8 @@ class MySubmissionsTab extends StatelessWidget {
   }
 }
 
-class MyProgressTab extends StatelessWidget {
-  const MyProgressTab({super.key});
+class MentorshipTab extends StatelessWidget {
+  const MentorshipTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -572,7 +431,7 @@ class MyProgressTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Progress',
+            'Mentorship',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
@@ -580,7 +439,7 @@ class MyProgressTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Track your submission progress and feedback',
+            'Track mentorship sessions and outcomes',
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 16,
@@ -589,7 +448,7 @@ class MyProgressTab extends StatelessWidget {
           const SizedBox(height: 32),
           const Center(
             child: Text(
-              'Progress tracking features coming soon!',
+              'Mentorship tracking features coming soon!',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ),
@@ -599,20 +458,18 @@ class MyProgressTab extends StatelessWidget {
   }
 }
 
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({super.key});
+class ResourcesTab extends StatelessWidget {
+  const ResourcesTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Profile',
+            'Resources',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
@@ -620,69 +477,18 @@ class ProfileTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Manage your account settings',
+            'Educational materials and guides',
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 16,
             ),
           ),
           const SizedBox(height: 32),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
-                child: user?.photoURL != null
-                    ? ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.network(
-                    user!.photoURL!,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                )
-                    : const Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Color(0xFF3B82F6),
-                ),
-              ),
-              const SizedBox(width: 32),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user?.displayName ?? 'User Name',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      user?.email ?? 'user@example.com',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Edit profile coming soon!')),
-                        );
-                      },
-                      icon: const Icon(Icons.edit),
-                      label: const Text('Edit Profile'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const Center(
+            child: Text(
+              'Resources library coming soon!',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
           ),
         ],
       ),
@@ -709,7 +515,7 @@ class SettingsTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Configure your preferences',
+            'Configure your mentor dashboard',
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 16,

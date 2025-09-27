@@ -5,7 +5,9 @@ import 'firebase_options.dart';
 import 'home.dart';
 import 'login.dart';
 import 'signup.dart';
-
+import 'mentor_dashboard.dart';
+import 'strivers_dashboard.dart';
+import 'auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,11 +27,15 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/login',
+      // Set the initial route to '/' and handle routing through AuthWrapper
+      initialRoute: '/',
       routes: {
+        '/': (context) => const AuthWrapper(),
         '/signup': (context) => const SignupScreen(),
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
+        '/mentorHome': (context) => const MentorDashboard(),
+        '/striversHome': (context) => const StriversDashboard(),
       },
     );
   }
