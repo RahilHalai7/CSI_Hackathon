@@ -45,9 +45,21 @@ Usage
   - Update `audio_path` in `asr.py`.
   - `python asr.py`
 
+Google Cloud Speech-to-Text — ASR
+- Install deps: `pip install -r requirements.txt`
+- Set `GOOGLE_APPLICATION_CREDENTIALS` to your service account JSON key:
+  - Current session: `$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\your-key.json"`
+  - Persistent: `setx GOOGLE_APPLICATION_CREDENTIALS "C:\\path\\to\\your-key.json"`
+- Ensure FFmpeg is installed and on PATH (`ffmpeg -version`), used for audio conversion.
+- Run transcription (auto-converts to mono 16kHz WAV):
+  - `python asr.py --input audio/test_audio.mp3 --language en-US`
+  - Marathi example: `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN`
+  - Optional: save to a file `--output pdf_text/marathi_transcript.txt`
+- Output is saved by default under `pdf_text/` with a timestamped filename if `--output` is not provided.
+
 Notes
 - `asr.py` supports `.wav`, `.mp3`, and `.m4a`. Non-WAV inputs are converted to mono 16kHz WAV for best results.
-- If you receive `Vision API Error` or `403` errors, ensure the APIs are enabled and the service account has correct roles.
+- If you receive `403` or permissions errors, ensure the Speech-to-Text API is enabled and the service account has correct roles.
 - If `pydub` complains about FFmpeg not found, confirm PATH includes the FFmpeg `bin` directory.
 
 Troubleshooting
