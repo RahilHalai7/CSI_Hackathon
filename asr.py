@@ -1,46 +1,20 @@
-import os
-from google.cloud import speech
+import whisper
 from pydub import AudioSegment
 
-def convert_to_wav(audio_path: str) -> str:
-    """Convert MP3 or M4A to WAV format for Google Speech-to-Text."""
-    file_name, ext = os.path.splitext(audio_path)
-    ext = ext.lower()
-    wav_path = file_name + "_converted.wav"
+# Path to your MP3 file
+audio_path = "audio/test_audio.mp3"
 
-    if ext in [".wav"]:
-        return audio_path  # Already WAV
-    elif ext in [".mp3", ".m4a"]:
-        audio = AudioSegment.from_file(audio_path, format=ext[1:])
-        audio = audio.set_channels(1).set_frame_rate(16000)  # Mono 16kHz
-        audio.export(wav_path, format="wav")
-        return wav_path
-    else:
-        raise ValueError(f"Unsupported audio format: {ext}")
+# Convert MP3 to WAV (Whisper works better with WAV)
+audio = AudioSegment.from_mp3(audio_path)
+wav_path = "audio/temp.wav"
+audio.export(wav_path, format="wav")
 
-def transcribe_audio(audio_path: str) -> str:
-    """Transcribe speech from an audio file using Google Cloud Speech-to-Text."""
-    client = speech.SpeechClient()
+# Load the Whisper model
+model = whisper.load_model("base")  # small/base/medium/large
 
-    # Convert audio if needed
-    wav_path = convert_to_wav(audio_path)
+# Transcribe
+result = model.transcribe(wav_path)
 
-    with open(wav_path, "rb") as f:
-        content = f.read()
-
-    audio = speech.RecognitionAudio(content=content)
-    config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=16000,
-        language_code="en-IN",
-    )
-
-    response = client.recognize(config=config, audio=audio)
-    transcript = " ".join([result.alternatives[0].transcript for result in response.results])
-    return transcript
-
-if __name__ == "__main__":
-    audio_path = r"C:\Users\RAHIL\Desktop\CSIHackathon\audio\test_audio2.m4a"  # or .mp3/.wav
-    text = transcribe_audio(audio_path)
-    print("✅ Transcribed Audio:\n")
-    print(text)
+# Print the transcription
+print("Transcription:")
+print(result["text"])
