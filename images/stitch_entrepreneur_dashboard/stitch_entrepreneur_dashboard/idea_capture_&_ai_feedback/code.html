@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13a4ec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101c22",
+            },
+            fontFamily: {
+              "display": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden text-neutral-800 dark:text-neutral-200">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-neutral-200 dark:border-neutral-800 px-10 py-3">
+<div class="flex items-center gap-4">
+<div class="size-6 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M12.0799 24L4 19.2479L9.95537 8.75216L18.04 13.4961L18.0446 4H29.9554L29.96 13.4961L38.0446 8.75216L44 19.2479L35.92 24L44 28.7521L38.0446 39.2479L29.96 34.5039L29.9554 44H18.0446L18.04 34.5039L9.95537 39.2479L4 28.7521L12.0799 24Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold tracking-tighter">The Unfair Advantage</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<div class="hidden md:flex items-center gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Mentors</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Resources</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Community</a>
+</div>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold">
+<span class="truncate">Get Started</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAtpx3O7Mc3xx48Rf4ffwMT1spqHqytnstcXJCYptmbky1RcLWe5NMvwLwfZNYAp8YTSpENoM_bobRAqnzNthrrCUnrGDR3mkRKA5WdS4COp46-mqk6xtVUb_CzHFx3feFQCcV5-j2JwhW0Q5T-1FbBaPijB_Tib6VaMM4x0QrD7tSbT21x3AYj2P3TgJOW0oIDLn-Omgihocp89KFCEFCmQaHbaa2FSxdVCzYeze_mQp6nFmIRVUyufHmBumCjxwhtzj1b09wysFs");'></div>
+</div>
+</header>
+<main class="flex-1 w-full py-12 md:py-20">
+<div class="container mx-auto px-4 md:px-6">
+<div class="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<h1 class="text-4xl font-bold tracking-tight">Capture Your Business Idea</h1>
+<p class="text-neutral-500 dark:text-neutral-400">Upload your handwritten notes, sketches, or audio files to get real-time AI-powered feedback.</p>
+</div>
+<div class="flex flex-col gap-4">
+<textarea class="form-textarea w-full rounded-lg text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary min-h-40 p-4 text-base" placeholder="Describe your business idea in detail..."></textarea>
+<div class="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center">
+<span class="material-symbols-outlined text-5xl text-neutral-400 dark:text-neutral-500">cloud_upload</span>
+<p class="text-lg font-bold">Drag and drop files here</p>
+<p class="text-sm text-neutral-500 dark:text-neutral-400">Supported formats: JPG, PNG, MP3, WAV</p>
+<button class="mt-2 flex items-center justify-center rounded-lg h-10 px-4 bg-neutral-200 dark:bg-neutral-800 text-sm font-bold hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors">Browse Files</button>
+</div>
+</div>
+<button class="w-full flex items-center justify-center rounded-lg h-12 px-6 bg-primary text-white text-base font-bold hover:bg-primary/90 transition-colors">Get AI Feedback</button>
+</div>
+<div class="flex flex-col gap-6">
+<h2 class="text-2xl font-bold tracking-tight">AI Feedback</h2>
+<div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-6">
+<div class="flex items-center gap-4 mb-4">
+<div class="p-2 bg-green-500/20 rounded-full">
+<span class="material-symbols-outlined text-green-500">thumb_up</span>
+</div>
+<h3 class="text-lg font-semibold">Strengths</h3>
+</div>
+<ul class="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+<li>Innovative approach to a common problem.</li>
+<li>Clear monetization strategy.</li>
+<li>Strong potential for scalability in the Indian market.</li>
+</ul>
+</div>
+<div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-6">
+<div class="flex items-center gap-4 mb-4">
+<div class="p-2 bg-orange-500/20 rounded-full">
+<span class="material-symbols-outlined text-orange-500">lightbulb</span>
+</div>
+<h3 class="text-lg font-semibold">Weaknesses &amp; Suggestions</h3>
+</div>
+<ul class="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+<li>Consider a more robust user acquisition plan.</li>
+<li>The competitive landscape needs further analysis.</li>
+<li>Explore integrating local payment gateways for better accessibility.</li>
+</ul>
+</div>
+<div class="flex items-center gap-2">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">Feedback available in:</p>
+<div class="flex gap-2">
+<span class="text-sm font-medium py-1 px-2 rounded-full bg-primary/10 text-primary">English</span>
+<span class="text-sm font-medium py-1 px-2 rounded-full bg-neutral-200 dark:bg-neutral-800">हिन्दी</span>
+<span class="text-sm font-medium py-1 px-2 rounded-full bg-neutral-200 dark:bg-neutral-800">తెలుగు</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

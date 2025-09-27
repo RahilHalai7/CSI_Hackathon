@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Unfair Advantage</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13a4ec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101c22",
+            },
+            fontFamily: {
+              "display": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="flex h-screen w-full flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200/80 dark:border-gray-700/80 px-10 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-gray-900 dark:text-white">
+<svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M12.0799 24L4 19.2479L9.95537 8.75216L18.04 13.4961L18.0446 4H29.9554L29.96 13.4961L38.0446 8.75216L44 19.2479L35.92 24L44 28.7521L38.0446 39.2479L29.96 34.5039L29.9554 44H18.0446L18.04 34.5039L9.95537 39.2479L4 28.7521L12.0799 24Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+<h1 class="text-xl font-bold">The Unfair Advantage</h1>
+</div>
+<nav class="flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-400">
+<a class="hover:text-primary transition-colors" href="#">Home</a>
+<a class="hover:text-primary transition-colors" href="#">Mentors</a>
+<a class="hover:text-primary transition-colors" href="#">Ideas</a>
+<a class="hover:text-primary transition-colors" href="#">Community</a>
+<a class="hover:text-primary transition-colors" href="#">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative w-64">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg>
+</div>
+<input class="w-full rounded-lg border-transparent bg-gray-100 dark:bg-gray-800 py-2 pl-10 pr-4 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Search" type="text"/>
+</div>
+<button class="relative rounded-full p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/50">
+<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path></svg>
+</button>
+<img alt="User avatar" class="h-10 w-10 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpdXU9JCveBnU7fQHHtbfuWYyjxtMjrwrCx-VxOh8dNnfU0jbhim92w_ZNRqOvwdOxuHLZUjvlzvMhqfLmMijtq4HW5Ll66jjSq2wl2afWNsGasMWaB6shdAQ0gOYp8VryB7zyjsSIoS2qY27tG2S2LFeItzyr5LMquKomtJmrBMzprlq8mYDHLtzJTVN0vdj5P7TKjYWqw7bjTk83JZ6_ssNW7dppLB3RV38lk1CA2tF7LrOOXR6qSmjzoW-Cy_RbAycDF1McPcw"/>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<aside class="w-80 shrink-0 border-r border-gray-200/80 dark:border-gray-700/80 p-6 flex flex-col gap-6">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">My Ideas</h2>
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-4 rounded-lg p-3 bg-primary/10 dark:bg-primary/20" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 text-primary">
+<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z"></path></svg>
+</div>
+<div>
+<p class="font-semibold text-gray-800 dark:text-gray-100">Sustainable Packaging</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Updated 2 days ago</p>
+</div>
+</a>
+<a class="flex items-center gap-4 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z"></path></svg>
+</div>
+<div>
+<p class="font-medium text-gray-800 dark:text-gray-200">App for Local Artisans</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Updated 1 week ago</p>
+</div>
+</a>
+<a class="flex items-center gap-4 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z"></path></svg>
+</div>
+<div>
+<p class="font-medium text-gray-800 dark:text-gray-200">Eco-Friendly Cleaning</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Updated 3 weeks ago</p>
+</div>
+</a>
+</div>
+<button class="w-full rounded-lg bg-primary py-3 text-sm font-bold text-white hover:bg-primary/90 transition-colors">New Idea</button>
+</aside>
+<section class="flex-1 overflow-y-auto p-8">
+<div class="mb-8">
+<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Community Hub</h1>
+<p class="text-gray-600 dark:text-gray-400">Connect with fellow entrepreneurs, mentors, and industry experts. Share your ideas, get feedback, and collaborate on projects.</p>
+</div>
+<div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+<nav aria-label="Tabs" class="-mb-px flex space-x-8">
+<a class="whitespace-nowrap border-b-2 border-primary px-1 pb-4 text-sm font-bold text-primary" href="#">Idea Boards</a>
+<a class="whitespace-nowrap border-b-2 border-transparent px-1 pb-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300" href="#">Chat</a>
+<a class="whitespace-nowrap border-b-2 border-transparent px-1 pb-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300" href="#">Forums</a>
+</nav>
+</div>
+<div class="mb-10">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Trending Ideas</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="group">
+<div class="w-full aspect-square rounded-lg bg-cover bg-center mb-3 overflow-hidden" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBLxLWMpRygWvrss7FOWnkiRHMJJGN2tfDI07K2N7MmLxbC3u_p7PjsggVRutlNAE_cTJXZxHRTfzPw9OMLWp1T-s1Sk_g72ixICQwhXXBUO2QKOv5TcqtQ5MuNC2ApAjbdLcuRPNBaWi36vAi1OmyfgHWEV4iDzQee3a-74WvGNKCMV_ZYHrtF9jQ5xxI3DWsj_HWDQgcfEvlT62eZz7TdLavDbFs6IU7uIaGoUQSc5aMCKWIIInYDihAzs28NWaCie5UMo2G6dbM");'></div>
+<h4 class="font-semibold text-gray-800 dark:text-gray-100 group-hover:text-primary transition-colors">Sustainable Packaging Solutions</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400">Innovative packaging solutions for eco-conscious brands.</p>
+</div>
+<div class="group">
+<div class="w-full aspect-square rounded-lg bg-cover bg-center mb-3 overflow-hidden" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAsRyHkx5am4eL_cQ4_oTdgirJHRvbWAUL6j2nqsAWiUIHRWyCBaVKBW2G0Ec_zA4FnenDfagXqm4nOjOHYYvKh0aJGfTQsGecbva_t8jvEH0SVvsNcvvFI2b3jnQukqBXxzBmFzTDN2tFfKzicVj5-IGRKr1k19ygIEXZgoaLBwDU08TmAZc2aE1sJ41fLzbufU2iYFmjFq-1yCXYL1TBMmZgf1HWk-f8vZPYe8Zje8pmX30QFsUR-82zcUQDRB1nD7Uha3mnu3ZE");'></div>
+<h4 class="font-semibold text-gray-800 dark:text-gray-100 group-hover:text-primary transition-colors">Mobile App for Local Artisans</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400">Connecting local artisans with a wider market.</p>
+</div>
+<div class="group">
+<div class="w-full aspect-square rounded-lg bg-cover bg-center mb-3 overflow-hidden" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBrGhOctX44WTsoKLFntFZ4bvK9zc8s2XmxOsW9bwR_4txuyFpHzOaXALjUDkCx_GoL_KUbJsdY9DavV_EJSrzKcVVuWJHMO_nNVkmhGE7SBFa6yrrZnr7capu_3mElEajZrqpezvPuCirOMsLzfp1KlG8QqepDHJUhQgTL7d4RvhtxfYGiHN7D4Cmo1hQzPIZLFIox2WukbdTbNcDVg6iGhSL_Jsx2VtwHe-qegy5NK_LYZg6C0X9UybQSYumFmqp8Lgwfw-5kCyM");'></div>
+<h4 class="font-semibold text-gray-800 dark:text-gray-100 group-hover:text-primary transition-colors">Eco-Friendly Cleaning Products</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400">Plant-based cleaning products for a healthier home.</p>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Community Discussions</h3>
+<div class="space-y-4">
+<div class="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<img alt="User avatar" class="h-12 w-12 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrGzAPPN5h2OVtRd44mmrHrYeMePfbPv2gdpvcCtJmGgzAPYMINI43YICwZSexWP0FGMB49CZC00X42ar9jHj8_DMfJJhCM9p1Z3bmZlVlh8o-24Pudfip91IbR8cjNMLxbxR26JcqneM_NwfRHRMN323CEz_APsLEsSaRVd1JBsQFIUK4tnihlLjtdZs_gA6yNtSfOYk4HGmirn0yyS5b0uE7jomCXe6bl0X-qpA3F_cOYqCFTtKeHXYlMfUC5u3GQm7OFBA0YTs"/>
+<div class="flex-1">
+<p class="font-medium text-gray-800 dark:text-gray-200">Seeking feedback on my business plan for a sustainable fashion brand.</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">5 comments • 2 hours ago</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<img alt="User avatar" class="h-12 w-12 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDK1CGLWmN6mprb7UOwSfyA5TALowOuqvWdrzVf6RHPXaVFiVTOK5AEyuC8W9E2tVCk3z0TLyqNQfVZbOMBuWUj0VbPgIW-2lODp6dVelDCl3R81qRBgFVl-fXpdkzGbs_CNVuzIowbQ4gZ24xGZ2TrhJBdHIz7K-hqpEXwKRMq3CCad2p5mh6e8GSHOtyNa4thBlNl-5hipq9NODc8TTZsQKW5HMKsmLa3Duastlb-iKKkiWpz6K507UT45_Q2mQI5ApUaEuYbBrE"/>
+<div class="flex-1">
+<p class="font-medium text-gray-800 dark:text-gray-200">Best strategies for securing seed funding in the Indian startup ecosystem?</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">12 comments • 4 hours ago</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<img alt="User avatar" class="h-12 w-12 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiHyYrS15ZtQtZIxQJaMpXcZMAuC1xSQZn9BXO3XIg1Pluxu4y0FrGT5aBHah-WS_czpRkC7IpEEdE1mpgTPtBObd2DX5kgFxjhKB_QYUAg4gjbPp0hPBhxaZT9TvXHpv0crNKgdwtVZ-FoPrVT5D36pTiyC4KKNZOkStYy_xGEaOXn-wc1Rkak0g3x9UwtapVSrjaLs7Jy9R-AcirieY34o5RrfRiUHO_mjeM86EjyP3j-FJXLLXIEWoIyFiTlJslRn-mjKdUfGI"/>
+<div class="flex-1">
+<p class="font-medium text-gray-800 dark:text-gray-200">How to effectively market a tech startup in a competitive market?</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">8 comments • 6 hours ago</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+
+</body></html>
