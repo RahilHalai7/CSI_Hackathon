@@ -1,3 +1,5 @@
 google-cloud-vision
 google-cloud-speech
 pydub
+google-generativeai
+python-dotenv
