@@ -23,6 +23,8 @@ def _normalize_language_code(lang: str | None) -> str:
         "en": "en-US",
         "hi": "hi-IN",
         "mr": "mr-IN",
+        "or": "or-IN",  # Odia
+        "odia": "or-IN",  # Odia alias
         "bn": "bn-IN",
         "ta": "ta-IN",
         "te": "te-IN",
@@ -66,20 +68,26 @@ def transcribe_audio_google(
         audio = speech.RecognitionAudio(content=audio_bytes)
         diarization_cfg = None
         if diarize:
+            # Provide sane defaults if hints not provided
+            if min_speakers is None and max_speakers is None:
+                min_speakers_local = 2
+                max_speakers_local = 4
+            else:
+                min_speakers_local = min_speakers
+                max_speakers_local = max_speakers
             diarization_cfg = speech.SpeakerDiarizationConfig()
             # CRITICAL: must enable diarization explicitly
             diarization_cfg.enable_speaker_diarization = True
-            if min_speakers is not None:
-                diarization_cfg.min_speaker_count = min_speakers
-            if max_speakers is not None:
-                diarization_cfg.max_speaker_count = max_speakers
+            if min_speakers_local is not None:
+                diarization_cfg.min_speaker_count = min_speakers_local
+            if max_speakers_local is not None:
+                diarization_cfg.max_speaker_count = max_speakers_local
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=sample_rate,
             language_code=language_code,
             enable_automatic_punctuation=True,
-            model="latest_long",
             enable_word_time_offsets=diarize,
             diarization_config=diarization_cfg,
         )
