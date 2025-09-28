@@ -54,6 +54,7 @@ def transcribe_audio_google(
     diarize: bool = False,
     min_speakers: Optional[int] = None,
     max_speakers: Optional[int] = None,
+    chunk_secs: int = 58,
 ) -> Tuple[str, Optional[int]]:
     """Transcribe an audio file using Google Cloud Speech-to-Text.
 
@@ -141,8 +142,8 @@ def transcribe_audio_google(
             nframes = w.getnframes()
             duration_sec = nframes / float(sample_rate)
 
-    # If audio is longer than ~58s, split into ~58-second chunks to stay below Google STT sync limit
-    if duration_sec >= 58.0:
+    # If audio is longer than ~chunk_secs, split to stay below Google STT sync limit
+    if duration_sec >= float(chunk_secs):
         transcripts: list[str] = []
         all_speaker_tags: Set[int] = set()
         with wave.open(wav_path, "rb") as w:
@@ -150,7 +151,8 @@ def transcribe_audio_google(
             sampwidth = w.getsampwidth()
             framerate = w.getframerate()
 
-            chunk_frames = int(framerate * 58)  # ~58 seconds per chunk
+            # ~chunk_secs seconds per chunk
+            chunk_frames = int(framerate * chunk_secs)
             total_frames = w.getnframes()
             frames_read = 0
 
@@ -209,6 +211,8 @@ def main() -> int:
     parser.add_argument("--diarize", action="store_true", help="Enable speaker diarization and report detected speaker count")
     parser.add_argument("--min-speakers", type=int, default=None, help="Optional minimum number of speakers for diarization")
     parser.add_argument("--max-speakers", type=int, default=None, help="Optional maximum number of speakers for diarization")
+    parser.add_argument("--chunk-secs", type=int, default=58, help="Chunk duration (seconds) for long audio files")
+    parser.add_argument("--output-style", choices=["plain", "diarized"], default="plain", help="Format transcript output: plain lines or diarized 'Person N:' style")
     args = parser.parse_args()
 
     # Credential check for Google Cloud STT
@@ -224,9 +228,10 @@ def main() -> int:
         transcript_text, speaker_count = transcribe_audio_google(
             input_path,
             language=args.language,
-            diarize=args.diarize,
+            diarize=(args.diarize or args.output_style == "diarized"),
             min_speakers=args.min_speakers,
             max_speakers=args.max_speakers,
+            chunk_secs=args.chunk_secs,
         )
     except Exception as e:
         print(f"❌ Transcription failed: {e}")

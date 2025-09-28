@@ -70,8 +70,12 @@ except ImportError:
 
 class PDFTextDetector:
     def __init__(self, use_gemini_structuring: bool = True):
-        """Initialize the text detector with Vision API and optionally Gemini configuration."""
-        self.vision_client = vision.ImageAnnotatorClient()
+        """Initialize the text detector with optional Gemini configuration.
+
+        Note: Google Cloud Vision client is lazily initialized only when OCR is needed,
+        so that direct text extraction can run without ADC credentials.
+        """
+        self.vision_client = None  # Lazily initialize when OCR is required
         self.use_gemini_structuring = use_gemini_structuring
         
         if self.use_gemini_structuring:
@@ -182,7 +186,18 @@ class PDFTextDetector:
         return image_page_pairs
     
     def extract_text_from_pdf_images(self, image_page_pairs: List[Tuple[Image.Image, int]]) -> str:
-        """Extract text from PDF images using Google Cloud Vision OCR."""
+        """Extract text from PDF images using Google Cloud Vision OCR.
+
+        Lazily creates the Vision client to avoid requiring ADC during non-OCR flows.
+        """
+        # Lazy init Vision client
+        if self.vision_client is None:
+            try:
+                self.vision_client = vision.ImageAnnotatorClient()
+            except Exception as e:
+                raise RuntimeError(
+                    "Google Cloud Vision client initialization failed. Set up Application Default Credentials or avoid OCR by not using --ocr-only."
+                ) from e
         all_text = []
         
         for pil_image, page_num in image_page_pairs:
@@ -339,7 +354,7 @@ class PDFTextDetector:
         
         return preferred[0]
     
-    def _generate_output_filename(self, pdf_path: str, custom_output: Optional[str] = None) -> str:
+    def _generate_output_filename(self, pdf_path: str, custom_output: Optional[str] = None, output_dir: Optional[str] = None) -> str:
         """Generate an appropriate output filename for the extracted text."""
         if custom_output:
             return custom_output
@@ -352,15 +367,19 @@ class PDFTextDetector:
         
         # Create output filename
         output_filename = f"{pdf_name}_extracted_{timestamp}.txt"
-        
-        return output_filename
+
+        # If an output directory is provided, place the file there
+        out_dir = Path(output_dir) if output_dir else Path("pdf_text")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        return str(out_dir / output_filename)
     
     def process_pdf_text_detection(self, pdf_path: str, page_range: Optional[str] = None,
                                   ocr_only: bool = False,
                                   show_intermediate: bool = False,
                                   output_file: Optional[str] = None,
                                   structure_text: bool = True,
-                                  auto_save: bool = True) -> str:
+                                  auto_save: bool = True,
+                                  output_dir: Optional[str] = "pdf_text") -> str:
         """
         Complete pipeline: PDF -> Text Extraction/OCR -> Text Processing -> Optional Structuring -> Auto Save
         """
@@ -424,9 +443,10 @@ class PDFTextDetector:
         
         # Step 5: Auto save or save to specified file
         if auto_save or output_file:
-            final_output_file = self._generate_output_filename(pdf_path, output_file)
+            final_output_file = self._generate_output_filename(pdf_path, output_file, output_dir)
             
             try:
+                Path(final_output_file).parent.mkdir(parents=True, exist_ok=True)
                 with open(final_output_file, 'w', encoding='utf-8') as f:
                     f.write(structured_text)
                 print(f"💾 Text automatically saved to: {final_output_file}")
@@ -471,6 +491,12 @@ def main():
         help="Custom output filename for extracted text (optional)"
     )
     parser.add_argument(
+        "--output-dir",
+        required=False,
+        default="pdf_text",
+        help="Directory to save extracted/structured text when auto-saving"
+    )
+    parser.add_argument(
         "--no-auto-save", 
         action="store_true",
         help="Disable automatic saving of extracted text to file"
@@ -487,7 +513,8 @@ def main():
             args.show_steps,
             args.output,
             structure_text=not args.no_structure,
-            auto_save=not args.no_auto_save
+            auto_save=not args.no_auto_save,
+            output_dir=args.output_dir
         )
         
         print("\n" + "="*60)

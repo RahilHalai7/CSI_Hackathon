@@ -437,6 +437,9 @@ def main():
     parser = argparse.ArgumentParser(description="Startup Evaluation and Utility CLI")
     parser.add_argument("--print-file", help="Print the contents of a text file to the terminal and exit")
     parser.add_argument("--idea-file", help="Path to idea text file for evaluation (overrides default)")
+    parser.add_argument("--output-file", help="Exact output file path to save the evaluation report")
+    parser.add_argument("--model", help="Gemini model id (e.g., models/gemini-2.5-flash)")
+    parser.add_argument("--json-only", action="store_true", help="Output and save raw JSON only (no formatted report)")
     args = parser.parse_args()
 
     # Utility path: print a given file and exit
@@ -456,6 +459,13 @@ def main():
     # Default path: run evaluation flow
     try:
         evaluator = StartupEvaluator()
+        # Allow model override from CLI
+        if args.model:
+            try:
+                evaluator.model = genai.GenerativeModel(args.model)
+                print(evaluator._colored_print(f"🔧 Using model: {args.model}", "yellow"))
+            except Exception as _:
+                print(evaluator._colored_print("⚠️ Failed to set custom model; using default.", "yellow"))
 
         # Configuration (override with --idea-file if provided)
         idea_file_path = args.idea_file or r"C:\Users\RAHIL\Documents\GitHub\CSI_Hackathon\pdf_text\sample_english_1_extracted_20250927_212527.txt"
@@ -474,13 +484,29 @@ def main():
         except Exception as _:
             pass
 
-        # Display results
-        evaluator.display_results(evaluation_results)
+        # Display and save results
+        if args.json_only:
+            # Print raw JSON
+            print("\n" + "="*60)
+            print("📊 RAW JSON OUTPUT")
+            print("="*60 + "\n")
+            print(json.dumps(evaluation_results, indent=2))
+        else:
+            evaluator.display_results(evaluation_results)
 
-        # Save to file
-        output_file = evaluator.save_to_file(evaluation_results, idea_text)
-
-        print(evaluator._colored_print(f"\n🎉 Evaluation complete! Check {output_file} for full report.", "green", attrs=['bold']))
+        # Save to desired file path or default directory
+        if args.output_file:
+            out_path = Path(args.output_file)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            if args.json_only:
+                out_path.write_text(json.dumps(evaluation_results, indent=2), encoding="utf-8")
+            else:
+                formatted = evaluator._format_file_content(evaluation_results, idea_text)
+                out_path.write_text(formatted, encoding="utf-8")
+            print(evaluator._colored_print(f"\n📝 Saved report to: {out_path}", "green"))
+        else:
+            output_file = evaluator.save_to_file(evaluation_results, idea_text)
+            print(evaluator._colored_print(f"\n🎉 Evaluation complete! Check {output_file} for full report.", "green", attrs=['bold']))
 
     except Exception as e:
         print(f"❌ Error: {str(e)}")

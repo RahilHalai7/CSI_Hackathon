@@ -23,6 +23,7 @@ import os
 import sys
 import json
 import time
+import re
 from pathlib import Path
 from typing import List, Optional
 from datetime import datetime
@@ -154,6 +155,16 @@ def translate_text(api_url: str, text: str, source: Optional[str], target: str, 
         raise
 
 
+def _split_speaker_prefix(line: str) -> tuple[str, str]:
+    """Return (prefix, content) if line starts with a speaker label like
+    'Person:' or 'Person 2:' else ('', line). Preserves original spacing after colon.
+    """
+    m = re.match(r"^(\s*Person(?:\s+\d+)?\s*:\s*)(.*)$", line)
+    if m:
+        return m.group(1), m.group(2)
+    return "", line
+
+
 def build_default_output(input_path: str) -> Path:
     out_dir = Path("translated")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -171,6 +182,9 @@ def main() -> int:
     parser.add_argument("--api-key", help="LibreTranslate API key (optional)", default=os.getenv("LIBRETRANSLATE_API_KEY"))
     parser.add_argument("--output", help="Optional output path for translated text")
     parser.add_argument("--max-chars", type=int, default=4500, help="Max characters per request chunk")
+    parser.add_argument("--line-by-line", action="store_true", help="Translate line-by-line to preserve formatting and speaker labels")
+    parser.add_argument("--preserve-speaker-labels", action="store_true", help="When line-by-line, keep 'Person:' labels intact")
+    parser.add_argument("--style", choices=["default", "diarized"], default="default", help="Preset output style; 'diarized' implies line-by-line with speaker labels")
     args = parser.parse_args()
 
     input_path = args.input
@@ -194,18 +208,44 @@ def main() -> int:
         source_lang = source_norm
         print(f"🌐 Source language (specified): {source_lang}")
 
-    chunks = split_into_chunks(content, max_chars=args.max_chars)
-    translated_parts: List[str] = []
-    for i, chunk in enumerate(chunks, start=1):
-        print(f"🔁 Translating chunk {i}/{len(chunks)} (len={len(chunk)})...")
-        try:
-            translated = translate_text(args.api_url, chunk, source_lang, args.target, args.api_key)
-            translated_parts.append(translated)
-        except Exception as e:
-            print(f"❌ Translation failed on chunk {i}: {e}")
-            return 1
+    # Style presets
+    style = getattr(args, "style", "default")
+    line_by_line = (getattr(args, "line_by_line", False) or style == "diarized")
+    preserve_labels = (getattr(args, "preserve_speaker_labels", False) or style == "diarized")
+    if line_by_line:
+        # Translate each line to preserve formatting and optional speaker labels
+        lines = content.splitlines()
+        translated_lines: List[str] = []
+        for idx, line in enumerate(lines, start=1):
+            if not line.strip():
+                translated_lines.append("")
+                continue
+            prefix = ""
+            core = line
+            if preserve_labels:
+                prefix, core = _split_speaker_prefix(line)
+            try:
+                translated_core = translate_text(args.api_url, core, source_lang, args.target, args.api_key)
+            except Exception as e:
+                print(f"❌ Translation failed on line {idx}: {e}")
+                return 1
+            translated_lines.append(f"{prefix}{translated_core}".strip())
+        output_text = "\n".join(translated_lines)
+    else:
+        chunks = split_into_chunks(content, max_chars=args.max_chars)
+        translated_parts: List[str] = []
+        for i, chunk in enumerate(chunks, start=1):
+            print(f"🔁 Translating chunk {i}/{len(chunks)} (len={len(chunk)})...")
+            try:
+                translated = translate_text(args.api_url, chunk, source_lang, args.target, args.api_key)
+                translated_parts.append(translated)
+            except Exception as e:
+                print(f"❌ Translation failed on chunk {i}: {e}")
+                return 1
+        output_text = "\n".join(part.strip() for part in translated_parts if part.strip())
 
-    output_text = "\n".join(part.strip() for part in translated_parts if part.strip())
+    # Normalize whitespace while preserving line breaks
+    output_text = "\n".join(s.strip() for s in output_text.splitlines())
 
     out_path = Path(args.output) if args.output else build_default_output(input_path)
     try:
