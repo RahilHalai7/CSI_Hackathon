@@ -1,0 +1,44 @@
+Person: Hello
+Person: Greetings, I am Devendra Nimbodkar speaking from the training center.
+Person: You are interested in the Tata development programs, and your name was registered with us; that's why I called you.
+Person: Okay, okay.
+Person: Sharad Pawar.
+Person: Please tell your mobile number.
+Person: Mobile number.
+Person 1: Hello. Greetings, I am Devendra Nimbodkar speaking from the training center. You are interested in the Tata development programs, and your name was registered with us; that's why I called you. Okay, okay. Sharad Pawar. Please tell your mobile number. Mobile number.
+Person: Where do you want to start?
+Person: Because I have some knowledge, or you plan to do it in the taluka (sub-district).
+Person: I will do it in my own village, Karanji.
+Person: And within that, what kind of business are you going to start?
+Person 1: Where do you want to start? Because I have some knowledge, or you plan to do it in the taluka (sub-district). I will do it in my own village, Karanji. And within that, what kind of business are you going to start?
+Person: Electrical—within that, motor rewinding is done.
+Person: Who will be your customers?
+Person: Farmers, and then others.
+Person: For this business you are starting, have you done any study/preparation?
+Person: The preparation is as follows—
+Person: That my father, while my education was ongoing…
+Person 1: Electrical—within that, motor rewinding is done. Who will be your customers? Farmers, and then others. For this business you are starting, have you done any study/preparation? The preparation is as follows—That my father, while my education was ongoing…
+Person: Therefore, when it comes to motors—meaning repair—I have some experience in repair and can do it well. I have studied for it and also taken motor training. Okay.
+Person: Alright. For this business, will you need any raw materials?
+Person: So, in this, motor rewinding means repair; and repair means the failed material requires labor-hours. Okay. For that, I mainly need larger quantities as required. The important thing is copper wire; then there is an insulating material used in it.
+Person: There is also something used for binding; that is needed.
+Person: After that…
+Person 1: Therefore, when it comes to motors—meaning repair—I have some experience in repair and can do it well. I have studied for it and also taken motor training. Okay. Alright. For this business, will you need any raw materials? So, in this, motor rewinding means repair; and repair means the failed material requires labor-hours. Okay. For that, I mainly need larger quantities as required. The important thing is copper wire; then there is an insulating material used in it. There is also something used for binding; that is needed. After that…
+Person: Information about Marathwada.
+Person: If so, what routes/contacts do you have?
+Person 1: Information about Marathwada. If so, what routes/contacts do you have?
+Person: Firstly, about the sourcing route—through Mahesh's reference I have also checked online; my friends have told me.
+Person: Then, for your business, is there competition in your area?
+Person: There is considerable competition because farmers need motors more.
+Person 1: Firstly, about the sourcing route—through Mahesh's reference I have also checked online; my friends have told me. Then, for your business, is there competition in your area? There is considerable competition because farmers need motors more.
+Person: Still, our quality, our communication, and how we behave—often we have to give credit because farmers don't have money. After maintaining such relationships, my conduct is good. There is competition, so it depends on how we differentiate from others. Okay. For this business, the services you will provide to customers—what will your charges be per unit?
+Person: There are different cases. If something important has failed, we have to do rewinding. If it comes to us, after diagnosing what's lacking or gone, we do the complete job. If it's a 5 HP motor, for the full service we charge ₹2200.
+Person 1: Still, our quality, our communication, and how we behave—often we have to give credit because farmers don't have money. After maintaining such relationships, my conduct is good. There is competition, so it depends on how we differentiate from others. Okay. For this business, the services you will provide to customers—what will your charges be per unit? There are different cases. If something important has failed, we have to do rewinding. If it comes to us, after diagnosing what's lacking or gone, we do the complete job. If it's a 5 HP motor, for the full service we charge ₹2200.
+Person: Since you will do this, approximately what monthly income can you expect from this business?
+Person: Nashik.
+Person: And now…
+Person 1: Since you will do this, approximately what monthly income can you expect from this business? Nashik. And now…
+Person: From month to month, our total revenue tends to be typically ₹40,000–₹45,000, sometimes up to ₹70,000.
+Person: Okay. I've gathered a brief overview of your business. For the next steps, I or someone from our team will call you, and then we'll complete the process.
+Person: Thank you so much.
+Person 1: From month to month, our total revenue tends to be typically ₹40,000–₹45,000, sometimes up to ₹70,000. Okay. I've gathered a brief overview of your business. For the next steps, I or someone from our team will call you, and then we'll complete the process. Thank you so much.

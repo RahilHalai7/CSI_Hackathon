@@ -18,6 +18,7 @@ Version: 2.0
 import os
 import json
 import datetime
+import argparse
 from pathlib import Path
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -63,7 +64,8 @@ class StartupEvaluator:
     def _colored_print(self, text, color=None, attrs=None):
         """Helper method for colored printing."""
         if COLORS_AVAILABLE:
-            return colored(text, color, attrs)
+            # Avoid passing attrs to prevent environment-specific issues
+            return colored(text, color)
         return text
     
     def load_business_idea(self, file_path):
@@ -164,13 +166,82 @@ Business Idea to Evaluate:
         
         try:
             parsed_result = json.loads(raw_output)
+            normalized = self._normalize_results(parsed_result)
             print(self._colored_print("✅ Evaluation completed successfully", "green"))
-            return parsed_result
+            return normalized
             
         except json.JSONDecodeError as e:
             print(self._colored_print("⚠️ JSON parsing failed. Raw output:", "red"))
             print(raw_output)
             raise Exception(f"Could not parse AI response as JSON: {str(e)}")
+
+    def _normalize_results(self, data):
+        """Normalize AI results to expected schema to avoid runtime errors."""
+        # Ensure dict structure
+        if not isinstance(data, dict):
+            return {
+                "raw": data,
+                "scores": {},
+                "verdict": "N/A",
+                "strengths": [],
+                "risks": [],
+                "suggestions": []
+            }
+
+        # Normalize scores
+        scores = data.get("scores", {})
+        if isinstance(scores, list):
+            converted = {}
+            for idx, item in enumerate(scores, start=1):
+                if isinstance(item, dict):
+                    name = item.get("criterion") or item.get("name") or item.get("key") or f"Metric_{idx}"
+                    val = item.get("score") if isinstance(item.get("score"), (int, float)) else item.get("value")
+                    try:
+                        val_num = float(val) if val is not None else None
+                    except Exception:
+                        val_num = None
+                    if val_num is not None:
+                        converted[name] = val_num
+                elif isinstance(item, (list, tuple)) and len(item) >= 2:
+                    name = str(item[0])
+                    try:
+                        val_num = float(item[1])
+                    except Exception:
+                        val_num = None
+                    if val_num is not None:
+                        converted[name] = val_num
+                else:
+                    converted[f"Metric_{idx}"] = 0.0
+            data["scores"] = converted
+        elif isinstance(scores, dict):
+            # Coerce all values to numbers if possible
+            clean = {}
+            for k, v in scores.items():
+                try:
+                    clean[k] = float(v)
+                except Exception:
+                    # Default non-numeric to 0
+                    clean[k] = 0.0
+            data["scores"] = clean
+        else:
+            data["scores"] = {}
+
+        # Lists: strengths, risks, suggestions
+        for key in ("strengths", "risks", "suggestions"):
+            val = data.get(key, [])
+            if isinstance(val, list):
+                # stringify any non-string items
+                data[key] = [str(x) for x in val]
+            elif isinstance(val, str):
+                data[key] = [val]
+            else:
+                data[key] = []
+
+        # Verdict default
+        if not isinstance(data.get("verdict"), str):
+            data["verdict"] = "N/A"
+
+        return data
     
     def display_results(self, evaluation_results):
         """
@@ -184,10 +255,16 @@ Business Idea to Evaluate:
         print(self._colored_print("="*70 + "\n", "green"))
         
         # Display scores
-        self._display_scores(evaluation_results.get("scores", {}))
+        try:
+            self._display_scores(evaluation_results.get("scores", {}))
+        except Exception as e:
+            print(self._colored_print(f"Scores display error: {e}", "red"))
         
         # Display verdict
-        self._display_verdict(evaluation_results.get("verdict", "N/A"))
+        try:
+            self._display_verdict(evaluation_results.get("verdict", "N/A"))
+        except Exception as e:
+            print(self._colored_print(f"Verdict display error: {e}", "red"))
         
         # Display detailed sections
         sections = [
@@ -197,15 +274,18 @@ Business Idea to Evaluate:
         ]
         
         for key, title, color in sections:
-            self._display_section(
-                evaluation_results.get(key, []), 
-                title, 
-                color
-            )
+            try:
+                self._display_section(
+                    evaluation_results.get(key, []), 
+                    title, 
+                    color
+                )
+            except Exception as e:
+                print(self._colored_print(f"Section '{key}' display error: {e}", "red"))
     
     def _display_scores(self, scores):
         """Display evaluation scores in a formatted table."""
-        if not scores:
+        if not scores or not isinstance(scores, dict):
             print("No scores available")
             return
             
@@ -353,33 +433,59 @@ Business Idea to Evaluate:
 
 
 def main():
-    """Main function to run the startup evaluation."""
+    """Main function to run the startup evaluation or print a file."""
+    parser = argparse.ArgumentParser(description="Startup Evaluation and Utility CLI")
+    parser.add_argument("--print-file", help="Print the contents of a text file to the terminal and exit")
+    parser.add_argument("--idea-file", help="Path to idea text file for evaluation (overrides default)")
+    args = parser.parse_args()
+
+    # Utility path: print a given file and exit
+    if args.print_file:
+        try:
+            with open(args.print_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            print("\n" + "="*60)
+            print("📄 FILE CONTENTS")
+            print("="*60 + "\n")
+            print(content)
+            return 0
+        except Exception as e:
+            print(f"❌ Error printing file: {e}")
+            return 1
+
+    # Default path: run evaluation flow
     try:
-        # Initialize evaluator
         evaluator = StartupEvaluator()
-        
-        # Configuration
-        idea_file_path = r"C:\Users\RAHIL\Documents\GitHub\CSI_Hackathon\pdf_text\sample_english_1_extracted_20250927_212527.txt"
-        
+
+        # Configuration (override with --idea-file if provided)
+        idea_file_path = args.idea_file or r"C:\Users\RAHIL\Documents\GitHub\CSI_Hackathon\pdf_text\sample_english_1_extracted_20250927_212527.txt"
+
         # Load business idea
         print("🔄 Loading business idea...")
         idea_text = evaluator.load_business_idea(idea_file_path)
-        
+
         # Evaluate the idea
         evaluation_results = evaluator.evaluate_idea(idea_text)
-        
+
+        # Debug: show normalized scores structure before display
+        try:
+            print(f"DEBUG scores type: {type(evaluation_results.get('scores'))}")
+            print(f"DEBUG scores content: {evaluation_results.get('scores')}")
+        except Exception as _:
+            pass
+
         # Display results
         evaluator.display_results(evaluation_results)
-        
+
         # Save to file
         output_file = evaluator.save_to_file(evaluation_results, idea_text)
-        
+
         print(evaluator._colored_print(f"\n🎉 Evaluation complete! Check {output_file} for full report.", "green", attrs=['bold']))
-        
+
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         return 1
-    
+
     return 0
 
 

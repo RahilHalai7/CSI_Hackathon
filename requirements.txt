@@ -3,3 +3,8 @@ google-cloud-speech
 pydub
 google-generativeai
 python-dotenv
+deep-translator
+Pillow
+fastapi
+uvicorn
+PyMuPDF

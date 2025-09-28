@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:ui';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
 
@@ -83,12 +85,45 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
         language: language,
       );
 
+      // Attempt to send the local file for processing based on type (audio/PDF)
+      // Uses local processing server at http://127.0.0.1:8000/process
+      // Falls back silently if server is not reachable.
+      if (selectedFile?.path != null) {
+        _triggerLocalProcessing(selectedFile!.path!, language);
+      }
+
       _showSuccessSnackBar('Idea submitted successfully! 🚀');
       Navigator.pop(context);
     } catch (e) {
       _showErrorSnackBar('Failed to submit idea. Please try again.');
     } finally {
       setState(() => isSubmitting = false);
+    }
+  }
+
+  Future<void> _triggerLocalProcessing(String localPath, String lang) async {
+    try {
+      final uri = Uri.parse('http://127.0.0.1:8000/process');
+      final res = await http.post(
+        uri,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"path": localPath, "language": lang}),
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final typ = data['type'] ?? 'document';
+        final out = data['output'] ?? '';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Processing started for $typ. Output: $out')),
+        );
+      } else {
+        // Non-blocking failure; notify briefly
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Document submitted, processing server not available')),
+        );
+      }
+    } catch (_) {
+      // Ignore processing errors to not block submission UX
     }
   }
 
