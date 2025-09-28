@@ -40,6 +40,8 @@ import re
 import io
 from pathlib import Path
 from datetime import datetime
+import sqlite3
+import hashlib
 
 try:
     from dotenv import load_dotenv  # type: ignore
@@ -372,6 +374,71 @@ class PDFTextDetector:
         out_dir = Path(output_dir) if output_dir else Path("pdf_text")
         out_dir.mkdir(parents=True, exist_ok=True)
         return str(out_dir / output_filename)
+
+    # --- SQLite helpers ---
+    def _ensure_db(self, db_path: str) -> None:
+        """Create SQLite database and table if they do not exist."""
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        with sqlite3.connect(db_path) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ocr_texts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    source_pdf_path TEXT,
+                    output_file_path TEXT,
+                    page_range TEXT,
+                    ocr_only INTEGER,
+                    structured INTEGER,
+                    created_at TEXT,
+                    file_hash TEXT,
+                    text TEXT
+                )
+                """
+            )
+
+    def _sha256(self, file_path: str) -> str:
+        """Compute SHA-256 of a file for de-duplication and tracking."""
+        try:
+            h = hashlib.sha256()
+            with open(file_path, 'rb') as f:
+                for chunk in iter(lambda: f.read(8192), b''):
+                    h.update(chunk)
+            return h.hexdigest()
+        except Exception:
+            return ""
+
+    def save_text_to_db(
+        self,
+        db_path: str,
+        pdf_path: str,
+        output_file_path: Optional[str],
+        text: str,
+        page_range: Optional[str],
+        ocr_only: bool,
+        structured: bool,
+    ) -> None:
+        """Persist extracted text and metadata into a local SQLite database."""
+        self._ensure_db(db_path)
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        file_hash = self._sha256(pdf_path)
+        with sqlite3.connect(db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO ocr_texts (
+                    source_pdf_path, output_file_path, page_range, ocr_only, structured, created_at, file_hash, text
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    pdf_path,
+                    output_file_path or "",
+                    page_range or "",
+                    1 if ocr_only else 0,
+                    1 if structured else 0,
+                    created_at,
+                    file_hash,
+                    text,
+                ),
+            )
     
     def process_pdf_text_detection(self, pdf_path: str, page_range: Optional[str] = None,
                                   ocr_only: bool = False,
@@ -379,7 +446,9 @@ class PDFTextDetector:
                                   output_file: Optional[str] = None,
                                   structure_text: bool = True,
                                   auto_save: bool = True,
-                                  output_dir: Optional[str] = "pdf_text") -> str:
+                                  output_dir: Optional[str] = "pdf_text",
+                                  save_to_db: bool = False,
+                                  db_path: Optional[str] = None) -> str:
         """
         Complete pipeline: PDF -> Text Extraction/OCR -> Text Processing -> Optional Structuring -> Auto Save
         """
@@ -442,16 +511,34 @@ class PDFTextDetector:
                 print("-" * 50)
         
         # Step 5: Auto save or save to specified file
-        if auto_save or output_file:
+        final_output_file: Optional[str] = None
+        if auto_save or output_file or save_to_db:
             final_output_file = self._generate_output_filename(pdf_path, output_file, output_dir)
-            
             try:
-                Path(final_output_file).parent.mkdir(parents=True, exist_ok=True)
-                with open(final_output_file, 'w', encoding='utf-8') as f:
-                    f.write(structured_text)
-                print(f"💾 Text automatically saved to: {final_output_file}")
+                if auto_save or output_file:
+                    Path(final_output_file).parent.mkdir(parents=True, exist_ok=True)
+                    with open(final_output_file, 'w', encoding='utf-8') as f:
+                        f.write(structured_text)
+                    print(f"💾 Text automatically saved to: {final_output_file}")
             except Exception as e:
                 print(f"⚠️  Failed to save text to file: {e}")
+
+        # Step 6: Save to SQLite database (optional)
+        if save_to_db:
+            try:
+                target_db = db_path or str(Path("data") / "ocr.db")
+                self.save_text_to_db(
+                    db_path=target_db,
+                    pdf_path=pdf_path,
+                    output_file_path=final_output_file,
+                    text=structured_text,
+                    page_range=page_range,
+                    ocr_only=ocr_only,
+                    structured=bool(structure_text and self.use_gemini_structuring),
+                )
+                print(f"🗄️  Saved extracted text to SQLite DB: {target_db}")
+            except Exception as e:
+                print(f"⚠️  Failed to save text to SQLite DB: {e}")
         
         return structured_text
 
@@ -501,6 +588,17 @@ def main():
         action="store_true",
         help="Disable automatic saving of extracted text to file"
     )
+    parser.add_argument(
+        "--save-to-db",
+        action="store_true",
+        help="Save extracted/structured text into a local SQLite database"
+    )
+    parser.add_argument(
+        "--db-path",
+        required=False,
+        default=str(Path("data") / "ocr.db"),
+        help="Path to SQLite database file (created if missing)"
+    )
     
     args = parser.parse_args()
     
@@ -514,7 +612,9 @@ def main():
             args.output,
             structure_text=not args.no_structure,
             auto_save=not args.no_auto_save,
-            output_dir=args.output_dir
+            output_dir=args.output_dir,
+            save_to_db=args.save_to_db,
+            db_path=args.db_path
         )
         
         print("\n" + "="*60)
