@@ -1,10 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:ui';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
 
@@ -65,65 +64,134 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
   }
 
   Future<void> _submitIdea() async {
-    if (!_formKey.currentState!.validate() || selectedFile == null) {
+    debugPrint('=== SUBMISSION STARTED ===');
+
+    // Validate form first
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('Form validation failed');
+      _showErrorSnackBar('Please fill in all required fields correctly');
+      return;
+    }
+
+    // Check if file is selected
+    if (selectedFile == null) {
+      debugPrint('No file selected');
+      _showErrorSnackBar('Please attach a supporting document');
+      return;
+    }
+
+    // Get values from controllers (more reliable than state variables)
+    final ideaTitle = _titleController.text.trim();
+    final ideaDescription = _descriptionController.text.trim();
+
+    // Additional validation
+    if (ideaTitle.isEmpty || ideaDescription.isEmpty) {
+      debugPrint('Title or description is empty after trim');
       _showErrorSnackBar('Please fill in all fields and attach a file');
       return;
     }
 
     setState(() => isSubmitting = true);
+    debugPrint('Set isSubmitting to true');
 
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      final file = File(selectedFile!.path!);
-      final fileUrl = await StorageService().uploadFile(file, uid);
-
-      await FirestoreService().submitBusinessIdea(
-        uid: uid,
-        title: title,
-        description: description,
-        fileUrl: fileUrl,
-        language: language,
-      );
-
-      // Attempt to send the local file for processing based on type (audio/PDF)
-      // Uses local processing server at http://127.0.0.1:8000/process
-      // Falls back silently if server is not reachable.
-      if (selectedFile?.path != null) {
-        _triggerLocalProcessing(selectedFile!.path!, language);
+      debugPrint('Step 1: Getting user ID');
+      // Get current user ID
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
       }
+      final uid = user.uid;
+      debugPrint('User ID obtained: $uid');
 
-      _showSuccessSnackBar('Idea submitted successfully! 🚀');
-      Navigator.pop(context);
-    } catch (e) {
-      _showErrorSnackBar('Failed to submit idea. Please try again.');
-    } finally {
-      setState(() => isSubmitting = false);
-    }
-  }
+      // Debug information
+      debugPrint('=== SUBMIT DEBUG ===');
+      debugPrint('Title: "$ideaTitle"');
+      debugPrint('Description: "$ideaDescription"');
+      debugPrint('Language: "$language"');
+      debugPrint('Selected file: ${selectedFile!.name}');
+      debugPrint('File size: ${selectedFile!.size} bytes');
+      debugPrint('Platform: ${kIsWeb ? "Web" : "Mobile/Desktop"}');
+      debugPrint('User ID: $uid');
 
-  Future<void> _triggerLocalProcessing(String localPath, String lang) async {
-    try {
-      final uri = Uri.parse('http://127.0.0.1:8000/process');
-      final res = await http.post(
-        uri,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"path": localPath, "language": lang}),
-      );
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final typ = data['type'] ?? 'document';
-        final out = data['output'] ?? '';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Processing started for $typ. Output: $out')),
+      String fileUrl;
+      final storagePath = 'business_ideas/$uid/${selectedFile!.name}';
+      debugPrint('Storage path: $storagePath');
+
+      debugPrint('Step 2: Starting file upload');
+      if (kIsWeb) {
+        // Web platform - use bytes
+        debugPrint('Web platform detected');
+        if (selectedFile!.bytes == null) {
+          throw Exception('File bytes are null');
+        }
+        debugPrint('File bytes available: ${selectedFile!.bytes!.length} bytes');
+        debugPrint('Calling uploadFileBytes...');
+
+        fileUrl = await StorageService().uploadFileBytes(
+          selectedFile!.bytes!,
+          storagePath,
+          selectedFile!.name,
+        ).timeout(
+          const Duration(minutes: 5),
+          onTimeout: () {
+            throw Exception('File upload timeout after 5 minutes');
+          },
         );
       } else {
-        // Non-blocking failure; notify briefly
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document submitted, processing server not available')),
+        // Mobile/Desktop platform - use file path
+        debugPrint('Mobile/Desktop platform detected');
+        if (selectedFile!.path == null) {
+          throw Exception('File path is null');
+        }
+        final file = File(selectedFile!.path!);
+        if (!await file.exists()) {
+          throw Exception('File does not exist at path: ${file.path}');
+        }
+        debugPrint('File exists at path: ${file.path}');
+        debugPrint('Calling uploadFile...');
+
+        fileUrl = await StorageService().uploadFile(file, storagePath).timeout(
+          const Duration(minutes: 5),
+          onTimeout: () {
+            throw Exception('File upload timeout after 5 minutes');
+          },
         );
       }
-    } catch (_) {
-      // Ignore processing errors to not block submission UX
+
+      debugPrint('Step 3: File uploaded successfully. URL: $fileUrl');
+
+      debugPrint('Step 4: Saving to Firestore');
+      // Save idea to Firestore using the controller values
+      await FirestoreService().submitBusinessIdea(
+        uid: uid,
+        title: ideaTitle,
+        description: ideaDescription,
+        fileUrl: fileUrl,
+        language: language,
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Firestore save timeout after 30 seconds');
+        },
+      );
+
+      debugPrint('Step 5: Idea submitted successfully to Firestore');
+      _showSuccessSnackBar('Idea submitted successfully! 🚀');
+
+      debugPrint('Step 6: Navigating back');
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      debugPrint('ERROR in submission: $e');
+      debugPrint('Error type: ${e.runtimeType}');
+      _showErrorSnackBar('Failed to submit idea: ${e.toString()}');
+    } finally {
+      debugPrint('Step 7: Cleanup - setting isSubmitting to false');
+      if (mounted) {
+        setState(() => isSubmitting = false);
+      }
     }
   }
 
@@ -455,12 +523,14 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
                     hintText: 'Enter a compelling title for your idea',
                     prefixIcon: Icons.title,
                     onChanged: (val) {
-                      title = val;
-                      if (val.isNotEmpty && _currentStep < 1) {
-                        setState(() => _currentStep = 1);
-                      }
+                      setState(() {
+                        title = val;
+                        if (val.isNotEmpty && _currentStep < 1) {
+                          _currentStep = 1;
+                        }
+                      });
                     },
-                    validator: (val) => val == null || val.isEmpty
+                    validator: (val) => val == null || val.trim().isEmpty
                         ? 'Please enter a title for your idea'
                         : null,
                   ),
@@ -473,13 +543,17 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
                     prefixIcon: Icons.description,
                     maxLines: 6,
                     onChanged: (val) {
-                      description = val;
-                      if (val.isNotEmpty && _currentStep < 2) {
-                        setState(() => _currentStep = 2);
-                      }
+                      setState(() {
+                        description = val;
+                        if (val.isNotEmpty && _currentStep < 2) {
+                          _currentStep = 2;
+                        }
+                      });
                     },
-                    validator: (val) => val == null || val.isEmpty
+                    validator: (val) => val == null || val.trim().isEmpty
                         ? 'Please provide a description of your idea'
+                        : val.trim().length < 20
+                        ? 'Please provide a more detailed description (at least 20 characters)'
                         : null,
                   ),
                   const SizedBox(height: 32),
@@ -700,83 +774,112 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
   }
 
   Widget _buildSubmitButton() {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF10B981)],
+    return Column(
+      children: [
+        Container(
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF3B82F6), Color(0xFF10B981)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: isSubmitting ? null : _submitIdea,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: isSubmitting
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  'Submitting Your Idea...',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            )
+                : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.send, color: Colors.white),
+                const SizedBox(width: 12),
+                const Text(
+                  'Submit Your Idea',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B82F6).withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+
+        // Debug/Reset button (only show when submitting)
+        if (isSubmitting) ...[
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () {
+              debugPrint('Manual reset triggered');
+              setState(() => isSubmitting = false);
+            },
+            child: Text(
+              'Cancel / Reset',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 14,
+              ),
+            ),
           ),
         ],
-      ),
-      child: ElevatedButton(
-        onPressed: isSubmitting ? null : _submitIdea,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: isSubmitting
-            ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              'Submitting Your Idea...',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        )
-            : Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.send, color: Colors.white),
-            const SizedBox(width: 12),
-            const Text(
-              'Submit Your Idea',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
-    );
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+      );
 
-    if (result != null) {
-      setState(() {
-        selectedFile = result.files.first;
-        if (_currentStep < 2) _currentStep = 2;
-      });
+      if (result != null) {
+        setState(() {
+          selectedFile = result.files.first;
+          if (_currentStep < 2) _currentStep = 2;
+        });
+        debugPrint('File picked: ${selectedFile!.name}');
+        debugPrint('File path: ${selectedFile!.path}');
+      }
+    } catch (e) {
+      debugPrint('Error picking file: $e');
+      _showErrorSnackBar('Error selecting file: ${e.toString()}');
     }
   }
 
