@@ -1,95 +1,177 @@
-CSI Hackathon – OCR + ASR Toolkit
+# CSI Hackathon Platform
 
-Overview
-- Extract text from images using Google Cloud Vision (OCR).
-- Transcribe speech with Google Cloud Speech‑to‑Text (ASR) and optional speaker diarization.
-- Multi‑language ASR tested for: English (`en-US`), Hindi (`hi-IN`), Marathi (`mr-IN`), Odia (`or-IN`), Gujarati (`gu-IN`).
+A comprehensive web application for managing business idea submissions, mentor feedback, and administrative oversight for the CSI Hackathon.
 
-Features
-- Auto‑convert non‑WAV audio (MP3/M4A/MP4) to mono 16 kHz WAV via FFmpeg.
-- Speaker‑attributed transcripts when `--diarize` is enabled (outputs lines like `Person 1: ...`).
-- Language normalization accepts short codes (e.g., `en`, `hi`, `mr`, `gu`, `or`, `odia`).
-- Saves transcripts under `pdf_text/` with timestamped filenames by default.
+## Features
 
-Prerequisites
-- Python 3.9+.
-- Google Cloud project with Speech‑to‑Text and Vision APIs enabled.
-- Service Account JSON key with permissions for Speech/Vision.
-- FFmpeg installed and on PATH (required for non‑WAV inputs).
+### For Entrepreneurs
+- **File Upload**: Upload PDF documents or audio files for business idea processing
+- **AI Processing**: Automatic text extraction and Business Model Canvas generation
+- **Submission Management**: View past submissions and their processing status
+- **Feedback Viewing**: Receive and view mentor feedback on submissions
 
-Setup (Windows / PowerShell)
-1) Create and activate a virtual environment:
-   - `python -m venv .venv`
-   - `.\.venv\Scripts\Activate.ps1`
-2) Install dependencies:
-   - `pip install -r requirements.txt`
-3) Set credentials (current session):
-   - `$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\your-key.json"`
-   Or persistently:
-   - `setx GOOGLE_APPLICATION_CREDENTIALS "C:\\path\\to\\your-key.json"`
-4) Install FFmpeg and verify:
-   - Add `ffmpeg` to PATH and run `ffmpeg -version`.
+### For Mentors
+- **Entrepreneur Management**: View assigned entrepreneurs
+- **Submission Review**: Review and provide feedback on entrepreneur submissions
+- **Feedback System**: Rate and provide detailed feedback with suggestions
 
-Project Structure
-- `asr.py` — Audio transcription via Google Cloud STT; supports diarization; converts audio to WAV mono 16 kHz.
-- `pdf_to_txt.py` — Extracts text from PDFs.
-- `oldscripts/ocr.py` — Image OCR via Google Cloud Vision.
-- `audio/` — Sample audio inputs.
-- `pdf_text/` — Saved transcripts and extracted text.
+### For Admins
+- **User Management**: Approve mentor applications and manage user accounts
+- **Mentor Assignments**: Assign mentors to entrepreneurs
+- **Progress Tracking**: Monitor overall platform activity and statistics
+- **System Oversight**: View all submissions and feedback across the platform
 
-ASR Usage
-- Basic transcription:
-  - `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN`
-- Save to a specific file:
-  - `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN --output pdf_text/marathi_transcript.txt`
+## Technology Stack
 
-Speaker Diarization
-- Enable diarization and provide hints:
-  - `python asr.py --input audio/Audio_Hindi_sample2.wav --language hi-IN --diarize --min-speakers 2 --max-speakers 4`
-- When enabled, the output includes speaker‑labeled lines like:
-  - `Person 1: ...`
-  - `Person 2: ...`
-- If hints are omitted, the script uses defaults (`min=2`, `max=4`).
+### Backend
+- **Flask**: Python web framework
+- **SQLite**: Database for user management and data storage
+- **Google Cloud APIs**: Speech-to-Text and Vision for file processing
+- **Gemini AI**: Business Model Canvas generation
+- **PyMuPDF**: PDF text extraction
+- **Pydub**: Audio processing
 
-Language Examples
-- English (`en-US`):
-  - `python asr.py --input audio/test_audio_en.wav --language en-US --diarize --min-speakers 1 --max-speakers 3`
-- Hindi (`hi-IN`):
-  - `python asr.py --input audio/Audio_Hindi_sample2.wav --language hi-IN --diarize --min-speakers 2 --max-speakers 4`
-- Marathi (`mr-IN`):
-  - `python asr.py --input audio/Audio_Marathi_sample1.wav --language mr-IN --diarize --min-speakers 2 --max-speakers 4`
-- Odia (`or-IN`):
-  - `python asr.py --input audio/Audio_Odia_sample2.wav --language or-IN --diarize --min-speakers 2 --max-speakers 6`
-- Gujarati (`gu-IN`):
-  - `python asr.py --input audio/Audio_Gujrati_sample1.wav --language gu-IN --diarize --min-speakers 2 --max-speakers 4`
+### Frontend
+- **React**: Modern JavaScript framework
+- **Tailwind CSS**: Utility-first CSS framework
+- **React Router**: Client-side routing
+- **Axios**: HTTP client for API communication
+- **React Dropzone**: File upload handling
+- **Lucide React**: Icon library
 
-Non‑WAV Inputs (MP3/M4A/MP4)
-- The script converts inputs to mono 16 kHz WAV automatically if FFmpeg is on PATH.
-- To pre‑convert manually:
-  - `ffmpeg -y -i input.mp4 -vn -ac 1 -ar 16000 audio/converted.wav`
+## Installation
 
-Saved Outputs
-- By default, transcripts are saved to `pdf_text/<input_name>_google_stt_<timestamp>.txt`.
-- Use `--output` to specify a custom path.
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- Google Cloud credentials for Speech-to-Text and Vision APIs
+- Gemini API key
 
-OCR Usage
-- Run OCR on an image (see `oldscripts/ocr.py`):
-  - Update the path in the script or adapt to take CLI arguments.
-  - `python oldscripts/ocr.py`
+### Backend Setup
 
-Troubleshooting
-- Credentials warnings:
-  - Ensure `GOOGLE_APPLICATION_CREDENTIALS` points to a valid service account key and APIs are enabled.
-- FFmpeg not found:
-  - Install FFmpeg and verify `ffmpeg -version` works. Non‑WAV inputs require FFmpeg.
-- Unsupported model errors:
-  - The script uses Google’s default model selection per language (e.g., `gu-IN` works without specifying `latest_long`).
-- Diarization detects 0–1 speakers:
-  - Increase `--min-speakers` / `--max-speakers` and ensure clean audio. Some languages return sparse speaker tags; transcripts still output and can be post‑processed.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd CSI_Hackathon
+   ```
 
-Notes
-- Diarization quality varies by audio clarity and language; the script groups words by `speaker_tag` into labeled lines.
-- For long audio, the script splits into ~58‑second chunks to stay within synchronous STT limits.
+2. **Create virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-License
-- Internal hackathon project; add a license if distributing publicly.
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+   Create a `.env` file in the root directory:
+   ```
+   GOOGLE_APPLICATION_CREDENTIALS=path/to/your/google-credentials.json
+   GEMINI_API_KEY=your_gemini_api_key
+   ```
+
+5. **Initialize database**
+   The database will be automatically created when you run the application.
+
+6. **Run the backend**
+   ```bash
+   python app.py
+   ```
+
+### Frontend Setup
+
+1. **Navigate to frontend directory**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**
+   ```bash
+   npm start
+   ```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+
+## Usage
+
+### Getting Started
+
+1. **Create an Admin Account**
+   - Register with role "admin"
+   - All users are automatically approved upon registration
+
+2. **Mentor Registration**
+   - Mentors can register and start using the platform immediately
+   - They can be assigned to entrepreneurs by the admin
+
+3. **Entrepreneur Registration**
+   - Entrepreneurs can register and start submitting files immediately
+   - They will be assigned a mentor by the admin
+
+### File Processing
+
+The system supports two types of file uploads:
+
+1. **PDF Documents**: Text extraction using PyMuPDF and OCR via Google Vision API
+2. **Audio Files**: Speech-to-text conversion using Google Cloud Speech-to-Text
+
+Both types are processed to generate Business Model Canvas data using Gemini AI.
+
+## API Endpoints
+
+### Authentication
+- `POST /api/register` - User registration
+- `POST /api/login` - User login
+- `GET /api/me` - Get current user info
+
+### Admin Endpoints
+- `GET /api/admin/pending-mentors` - Get pending mentor approvals
+- `POST /api/admin/approve-mentor/<id>` - Approve a mentor
+- `POST /api/admin/assign-mentor` - Assign mentor to entrepreneur
+- `GET /api/admin/users` - Get all users
+- `GET /api/admin/submissions` - Get all submissions
+
+### Mentor Endpoints
+- `GET /api/mentor/entrepreneurs` - Get assigned entrepreneurs
+- `GET /api/mentor/submissions` - Get submissions from assigned entrepreneurs
+- `POST /api/mentor/feedback` - Submit feedback
+
+### Entrepreneur Endpoints
+- `GET /api/entrepreneur/mentor` - Get assigned mentor
+- `GET /api/entrepreneur/submissions` - Get own submissions
+- `POST /api/entrepreneur/submit` - Submit file for processing
+
+## Database Schema
+
+The application uses SQLite with the following main tables:
+- `users` - User accounts and roles
+- `mentor_assignments` - Mentor-entrepreneur relationships
+- `submissions` - File submissions and processing results
+- `feedback` - Mentor feedback on submissions
+- `processing_logs` - File processing history
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support and questions, please contact the development team or create an issue in the repository.

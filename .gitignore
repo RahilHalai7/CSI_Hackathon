@@ -1,2 +1,58 @@
 # Exclude this file from being tracked
 swift-key.json
+frontend/node_modules
+frontend/.env
+frontend/package-lock.json
+frontend/package.json
+frontend/public
+frontend/src
+frontend/tailwind.config.js
+frontend/vite.config.js
+frontend/index.html
+frontend/main.js
+.env
+
+# ---- Added ignores ----
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+env/
+pdf_processor_env/
+
+# Node / React
+frontend/node_modules/
+frontend/.next/
+frontend/build/
+frontend/dist/
+frontend/.cache/
+frontend/.turbo/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# Env / Secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+# Add specific credential files here; avoid ignoring all JSON by default
+# swift-key.json already listed above
+
+# Caches
+.cache/
+.pytest_cache/
+.mypy_cache/
