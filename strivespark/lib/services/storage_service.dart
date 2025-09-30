@@ -1,111 +1,84 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-
   // For web compatibility - upload using bytes
   Future<String> uploadFileBytes(
-      Uint8List fileBytes,
-      String storagePath,
-      String fileName,
-      ) async {
+    Uint8List fileBytes,
+    String storagePath,
+    String fileName,
+  ) async {
     try {
-      debugPrint('StorageService: Starting uploadFileBytes');
-      debugPrint('StorageService: Storage path: $storagePath');
-      debugPrint('StorageService: File name: $fileName');
-      debugPrint('StorageService: File size: ${fileBytes.length} bytes');
+      debugPrint('StorageService(Local): Starting uploadFileBytes');
+      debugPrint('StorageService(Local): File name: $fileName');
+      debugPrint('StorageService(Local): File size: ${fileBytes.length} bytes');
 
-      // Create a reference to the Firebase Storage path
-      final ref = _storage.ref().child(storagePath);
-      debugPrint('StorageService: Reference created');
+      final uploadUrl = Uri.parse('http://127.0.0.1:8000/upload');
+      final isPdf = fileName.toLowerCase().endsWith('.pdf');
 
-      // Upload the file bytes
-      final uploadTask = ref.putData(
-        fileBytes,
-        SettableMetadata(
-          customMetadata: {
-            'uploaded_by': 'flutter_app',
-            'file_name': fileName,
-            'upload_timestamp': DateTime.now().toIso8601String(),
-          },
-        ),
+      final req = http.MultipartRequest('POST', uploadUrl);
+      req.files.add(
+        http.MultipartFile.fromBytes('file', fileBytes, filename: fileName),
       );
-      debugPrint('StorageService: Upload task created');
+      req.fields['process_pdf'] = isPdf ? 'true' : 'false';
 
-      // Monitor upload progress
-      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        final progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        debugPrint('StorageService: Upload progress: ${progress.toStringAsFixed(2)}%');
-      });
+      final streamed = await req.send().timeout(const Duration(minutes: 2));
+      final resp = await http.Response.fromStream(streamed);
+      debugPrint('StorageService(Local): Upload response: ${resp.statusCode}');
+      debugPrint('StorageService(Local): Upload body: ${resp.body}');
 
-      // Wait for the upload to complete
-      debugPrint('StorageService: Waiting for upload to complete...');
-      final snapshot = await uploadTask.whenComplete(() {
-        debugPrint('StorageService: Upload completed');
-      });
-
-      debugPrint('StorageService: Getting download URL...');
-      // Get the download URL
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      debugPrint('StorageService: Upload successful! URL: $downloadUrl');
-      return downloadUrl;
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        final storedPath = data['stored_path'] as String?;
+        if (storedPath == null || storedPath.isEmpty) {
+          throw Exception('Upload succeeded but stored_path missing');
+        }
+        debugPrint('StorageService(Local): Stored at: $storedPath');
+        return storedPath;
+      } else {
+        throw Exception('Upload failed: ${resp.body}');
+      }
     } catch (e) {
-      debugPrint('StorageService ERROR: $e');
-      debugPrint('StorageService ERROR Type: ${e.runtimeType}');
-      throw Exception('Failed to upload file: $e');
+      debugPrint('StorageService(Local) ERROR: $e');
+      throw Exception('Failed to upload file locally: $e');
     }
   }
 
   // Keep the original method for mobile/desktop compatibility
   Future<String> uploadFile(File file, String storagePath) async {
     try {
-      debugPrint('StorageService: Starting uploadFile');
-      debugPrint('StorageService: File path: ${file.path}');
-      debugPrint('StorageService: Storage path: $storagePath');
+      debugPrint('StorageService(Local): Starting uploadFile');
+      debugPrint('StorageService(Local): File path: ${file.path}');
 
-      // Create a reference to the Firebase Storage path
-      final ref = _storage.ref().child(storagePath);
-      debugPrint('StorageService: Reference created');
+      final uploadUrl = Uri.parse('http://127.0.0.1:8000/upload');
+      final isPdf = file.path.toLowerCase().endsWith('.pdf');
 
-      // Upload the file
-      final uploadTask = ref.putFile(
-        file,
-        SettableMetadata(
-          customMetadata: {
-            'uploaded_by': 'flutter_app',
-            'file_name': file.path.split('/').last,
-            'upload_timestamp': DateTime.now().toIso8601String(),
-          },
-        ),
-      );
-      debugPrint('StorageService: Upload task created');
+      final req = http.MultipartRequest('POST', uploadUrl);
+      req.files.add(await http.MultipartFile.fromPath('file', file.path));
+      req.fields['process_pdf'] = isPdf ? 'true' : 'false';
 
-      // Monitor upload progress
-      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        final progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        debugPrint('StorageService: Upload progress: ${progress.toStringAsFixed(2)}%');
-      });
+      final streamed = await req.send().timeout(const Duration(minutes: 2));
+      final resp = await http.Response.fromStream(streamed);
+      debugPrint('StorageService(Local): Upload response: ${resp.statusCode}');
+      debugPrint('StorageService(Local): Upload body: ${resp.body}');
 
-      // Wait for the upload to complete
-      debugPrint('StorageService: Waiting for upload to complete...');
-      final snapshot = await uploadTask.whenComplete(() {
-        debugPrint('StorageService: Upload completed');
-      });
-
-      debugPrint('StorageService: Getting download URL...');
-      // Get the download URL
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      debugPrint('StorageService: Upload successful! URL: $downloadUrl');
-      return downloadUrl;
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        final storedPath = data['stored_path'] as String?;
+        if (storedPath == null || storedPath.isEmpty) {
+          throw Exception('Upload succeeded but stored_path missing');
+        }
+        debugPrint('StorageService(Local): Stored at: $storedPath');
+        return storedPath;
+      } else {
+        throw Exception('Upload failed: ${resp.body}');
+      }
     } catch (e) {
-      debugPrint('StorageService ERROR: $e');
-      debugPrint('StorageService ERROR Type: ${e.runtimeType}');
-      throw Exception('Failed to upload file: $e');
+      debugPrint('StorageService(Local) ERROR: $e');
+      throw Exception('Failed to upload file locally: $e');
     }
   }
 
@@ -126,32 +99,8 @@ class StorageService {
         throw Exception('Neither file bytes nor file provided');
       }
     } catch (e) {
-      debugPrint('StorageService Universal ERROR: $e');
-      throw Exception('Failed to upload: $e');
-    }
-  }
-
-  // Delete file from storage
-  Future<void> deleteFile(String storagePath) async {
-    try {
-      final ref = _storage.ref().child(storagePath);
-      await ref.delete();
-      debugPrint('StorageService: File deleted successfully: $storagePath');
-    } catch (e) {
-      debugPrint('StorageService Delete ERROR: $e');
-      throw Exception('Failed to delete file: $e');
-    }
-  }
-
-  // Get file metadata
-  Future<FullMetadata> getFileMetadata(String storagePath) async {
-    try {
-      final ref = _storage.ref().child(storagePath);
-      final metadata = await ref.getMetadata();
-      return metadata;
-    } catch (e) {
-      debugPrint('StorageService Metadata ERROR: $e');
-      throw Exception('Failed to get file metadata: $e');
+      debugPrint('StorageService(Local) Universal ERROR: $e');
+      throw Exception('Failed to upload locally: $e');
     }
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:strivespark/services/api_service.dart';
 import 'dart:ui';
 import 'feedback_view.dart';
 
@@ -310,10 +310,10 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
   }
 
   Widget _buildIdeasList(String uid) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _getFilteredStream(uid),
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: ApiService().getIdeasByUser(uid),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -329,7 +329,12 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
           );
         }
 
-        final ideas = snapshot.data!.docs;
+        final allIdeas = snapshot.data ?? [];
+        final ideas = allIdeas.where((idea) {
+          if (_selectedFilter == 'all') return true;
+          final status = (idea['status'] ?? 'submitted').toString();
+          return status == _selectedFilter;
+        }).toList();
 
         if (ideas.isEmpty) {
           return _buildEmptyState();
@@ -340,25 +345,13 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
           child: ListView.builder(
             itemCount: ideas.length,
             itemBuilder: (context, index) {
-              final data = ideas[index].data() as Map<String, dynamic>;
+              final data = ideas[index];
               return _buildIdeaCard(data, index);
             },
           ),
         );
       },
     );
-  }
-
-  Stream<QuerySnapshot> _getFilteredStream(String uid) {
-    var query = FirebaseFirestore.instance
-        .collection('business_ideas')
-        .where('entrepreneur_id', isEqualTo: uid);
-
-    if (_selectedFilter != 'all') {
-      query = query.where('status', isEqualTo: _selectedFilter);
-    }
-
-    return query.orderBy('created_at', descending: true).snapshots();
   }
 
   Widget _buildEmptyState() {
@@ -405,9 +398,15 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
   }
 
   Widget _buildIdeaCard(Map<String, dynamic> data, int index) {
-    final status = data['status'] ?? 'draft';
+    final status = data['status'] ?? 'submitted';
     final statusInfo = _getStatusInfo(status);
-    final createdAt = (data['created_at'] as Timestamp?)?.toDate();
+    final createdAtRaw = data['created_at'];
+    DateTime? createdAt;
+    if (createdAtRaw is String) {
+      createdAt = DateTime.tryParse(createdAtRaw);
+    } else if (createdAtRaw is int) {
+      createdAt = DateTime.fromMillisecondsSinceEpoch(createdAtRaw);
+    }
     final timeAgo = createdAt != null ? _getTimeAgo(createdAt) : 'Unknown';
 
     return Container(
@@ -539,7 +538,7 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
                           size: 16,
                         ),
                         const Spacer(),
-                        if (data['feedback'] != null)
+                        if ((data['mentor_feedback'] ?? '').toString().isNotEmpty)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(

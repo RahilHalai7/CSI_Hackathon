@@ -2,10 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'dart:ui';
-import '../../services/firestore_service.dart';
-import '../../services/storage_service.dart';
 
 class IdeaFormScreen extends StatefulWidget {
   const IdeaFormScreen({super.key});
@@ -38,20 +37,16 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _animationController.forward();
   }
 
@@ -95,14 +90,7 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
     debugPrint('Set isSubmitting to true');
 
     try {
-      debugPrint('Step 1: Getting user ID');
-      // Get current user ID
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception('User not authenticated');
-      }
-      final uid = user.uid;
-      debugPrint('User ID obtained: $uid');
+      debugPrint('Local mode: uploading file to local server');
 
       // Debug information
       debugPrint('=== SUBMIT DEBUG ===');
@@ -112,74 +100,79 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
       debugPrint('Selected file: ${selectedFile!.name}');
       debugPrint('File size: ${selectedFile!.size} bytes');
       debugPrint('Platform: ${kIsWeb ? "Web" : "Mobile/Desktop"}');
-      debugPrint('User ID: $uid');
 
-      String fileUrl;
-      final storagePath = 'business_ideas/$uid/${selectedFile!.name}';
-      debugPrint('Storage path: $storagePath');
+      // Upload to local server for offline storage and optional PDF processing
+      debugPrint('Uploading to local /upload endpoint');
+      try {
+        final uploadUrl = Uri.parse('http://127.0.0.1:8000/upload');
+        final isPdf = selectedFile!.name.toLowerCase().endsWith('.pdf');
 
-      debugPrint('Step 2: Starting file upload');
-      if (kIsWeb) {
-        // Web platform - use bytes
-        debugPrint('Web platform detected');
-        if (selectedFile!.bytes == null) {
-          throw Exception('File bytes are null');
+        http.StreamedResponse streamed;
+        if (kIsWeb) {
+          if (selectedFile!.bytes == null) {
+            throw Exception('No file bytes available on web');
+          }
+          final req = http.MultipartRequest('POST', uploadUrl);
+          req.files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              selectedFile!.bytes!,
+              filename: selectedFile!.name,
+            ),
+          );
+          req.fields['process_pdf'] = isPdf ? 'true' : 'false';
+          streamed = await req.send().timeout(const Duration(minutes: 2));
+        } else {
+          if (selectedFile!.path == null) {
+            throw Exception('File path is null');
+          }
+          final req = http.MultipartRequest('POST', uploadUrl);
+          req.files.add(
+            await http.MultipartFile.fromPath('file', selectedFile!.path!),
+          );
+          req.fields['process_pdf'] = isPdf ? 'true' : 'false';
+          streamed = await req.send().timeout(const Duration(minutes: 2));
         }
-        debugPrint('File bytes available: ${selectedFile!.bytes!.length} bytes');
-        debugPrint('Calling uploadFileBytes...');
 
-        fileUrl = await StorageService().uploadFileBytes(
-          selectedFile!.bytes!,
-          storagePath,
-          selectedFile!.name,
-        ).timeout(
-          const Duration(minutes: 5),
-          onTimeout: () {
-            throw Exception('File upload timeout after 5 minutes');
-          },
-        );
-      } else {
-        // Mobile/Desktop platform - use file path
-        debugPrint('Mobile/Desktop platform detected');
-        if (selectedFile!.path == null) {
-          throw Exception('File path is null');
-        }
-        final file = File(selectedFile!.path!);
-        if (!await file.exists()) {
-          throw Exception('File does not exist at path: ${file.path}');
-        }
-        debugPrint('File exists at path: ${file.path}');
-        debugPrint('Calling uploadFile...');
+        final resp = await http.Response.fromStream(streamed);
+        debugPrint('Upload response: ${resp.statusCode}');
+        debugPrint('Upload body: ${resp.body}');
 
-        fileUrl = await StorageService().uploadFile(file, storagePath).timeout(
-          const Duration(minutes: 5),
-          onTimeout: () {
-            throw Exception('File upload timeout after 5 minutes');
-          },
-        );
+        if (resp.statusCode == 200) {
+          final data = jsonDecode(resp.body) as Map<String, dynamic>;
+          final reportId = data['report_id'];
+          final storedPath = data['stored_path'];
+          debugPrint('Stored at: $storedPath, report_id: $reportId');
+          if (reportId != null) {
+            await showDialog(
+              context: context,
+              builder: (ctx) {
+                return AlertDialog(
+                  title: const Text('Report Generated'),
+                  content: const Text(
+                    'Your document was processed and a report is available.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            _showSuccessSnackBar('File uploaded and stored offline');
+          }
+        } else {
+          _showErrorSnackBar('Upload failed: ${resp.body}');
+        }
+      } catch (e) {
+        debugPrint('ERROR uploading: $e');
+        _showErrorSnackBar('Could not upload file to local server');
       }
 
-      debugPrint('Step 3: File uploaded successfully. URL: $fileUrl');
-
-      debugPrint('Step 4: Saving to Firestore');
-      // Save idea to Firestore using the controller values
-      await FirestoreService().submitBusinessIdea(
-        uid: uid,
-        title: ideaTitle,
-        description: ideaDescription,
-        fileUrl: fileUrl,
-        language: language,
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw Exception('Firestore save timeout after 30 seconds');
-        },
-      );
-
-      debugPrint('Step 5: Idea submitted successfully to Firestore');
-      _showSuccessSnackBar('Idea submitted successfully! 🚀');
-
-      debugPrint('Step 6: Navigating back');
+      debugPrint('Step 7: Navigating back');
       if (mounted) {
         Navigator.pop(context);
       }
@@ -188,7 +181,7 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
       debugPrint('Error type: ${e.runtimeType}');
       _showErrorSnackBar('Failed to submit idea: ${e.toString()}');
     } finally {
-      debugPrint('Step 7: Cleanup - setting isSubmitting to false');
+      debugPrint('Final Step: Cleanup - setting isSubmitting to false');
       if (mounted) {
         setState(() => isSubmitting = false);
       }
@@ -431,7 +424,9 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
           height: 40,
           decoration: BoxDecoration(
             gradient: isActive
-                ? const LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF10B981)])
+                ? const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF10B981)],
+                  )
                 : null,
             color: isActive ? null : Colors.white.withOpacity(0.1),
             shape: BoxShape.circle,
@@ -452,9 +447,7 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isActive
-                ? Colors.white
-                : Colors.white.withOpacity(0.6),
+            color: isActive ? Colors.white : Colors.white.withOpacity(0.6),
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -470,7 +463,9 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         gradient: isCompleted
-            ? const LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF10B981)])
+            ? const LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF10B981)],
+              )
             : null,
         color: isCompleted ? null : Colors.white.withOpacity(0.2),
         borderRadius: BorderRadius.circular(1),
@@ -646,7 +641,10 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
           borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
         errorStyle: const TextStyle(color: Colors.redAccent),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
     );
   }
@@ -670,7 +668,9 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
         child: Column(
           children: [
             Icon(
-              selectedFile != null ? Icons.check_circle_outline : Icons.cloud_upload_outlined,
+              selectedFile != null
+                  ? Icons.check_circle_outline
+                  : Icons.cloud_upload_outlined,
               size: 48,
               color: selectedFile != null
                   ? const Color(0xFF10B981)
@@ -730,7 +730,10 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       items: const [
         DropdownMenuItem(
@@ -802,42 +805,42 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
             ),
             child: isSubmitting
                 ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  'Submitting Your Idea...',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            )
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Submitting Your Idea...',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  )
                 : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.send, color: Colors.white),
-                const SizedBox(width: 12),
-                const Text(
-                  'Submit Your Idea',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.send, color: Colors.white),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Submit Your Idea',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         ),
 
@@ -921,10 +924,7 @@ class _IdeaFormScreenState extends State<IdeaFormScreen>
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         tip,
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.8),
-          height: 1.4,
-        ),
+        style: TextStyle(color: Colors.white.withOpacity(0.8), height: 1.4),
       ),
     );
   }

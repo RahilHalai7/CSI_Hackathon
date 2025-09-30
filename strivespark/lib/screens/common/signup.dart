@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:ui';
 
 class SignupScreen extends StatefulWidget {
@@ -52,24 +51,13 @@ class _SignupScreenState extends State<SignupScreen> {
         // Update user profile with name
         await user.updateDisplayName(_nameController.text.trim());
 
-        // Create or overwrite profile in Firestore
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'name': _nameController.text.trim(),
-          'role': _selectedRole,
-          'email': _emailController.text.trim(),
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        // We no longer store user profiles in Firestore.
+        // If needed, integrate a local API to persist profiles.
       }
 
       if (mounted) {
-        // Route by role
-        if (_selectedRole == 'mentor') {
-          Navigator.pushReplacementNamed(context, '/mentorHome');
-        } else if (_selectedRole == 'admin') {
-          Navigator.pushReplacementNamed(context, '/adminDashboard');
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
+        // Route to entrepreneur dashboard by default
+        Navigator.pushReplacementNamed(context, '/entrepreneurHome');
       }
     } on FirebaseAuthException catch (e) {
       setState(() {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import '../../services/api_service.dart';
 import 'dart:ui';
 
 class AdminDashboard extends StatefulWidget {
@@ -20,11 +22,11 @@ class _AdminDashboardState extends State<AdminDashboard>
   Map<String, dynamic>? userProfile;
   List<Map<String, dynamic>> recentActivities = [];
   Map<String, int> stats = {
-    'totalUsers': 0,
-    'activeGroups': 0,
-    'totalMentors': 0,
-    'totalEntrepreneurs': 0,
+    'totalIdeas': 0,
+    'totalReports': 0,
+    'totalUploads': 0,
   };
+  final ApiService _api = const ApiService();
 
   @override
   void initState() {
@@ -38,36 +40,33 @@ class _AdminDashboardState extends State<AdminDashboard>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.8, curve: Curves.easeInOut),
-    ));
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeInOut),
+      ),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+          ),
+        );
     _animationController.forward();
   }
 
   Future<void> _loadDashboardData() async {
     try {
-      // Load user profile
+      // Load user profile (from FirebaseAuth only)
       if (currentUser != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser!.uid)
-            .get();
-        if (userDoc.exists) {
-          setState(() {
-            userProfile = userDoc.data();
-          });
-        }
+        setState(() {
+          userProfile = {
+            'displayName': currentUser!.displayName,
+            'email': currentUser!.email,
+            'uid': currentUser!.uid,
+          };
+        });
       }
 
       // Load statistics
@@ -82,33 +81,9 @@ class _AdminDashboardState extends State<AdminDashboard>
 
   Future<void> _loadStatistics() async {
     try {
-      final usersSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .get();
-
-      final groupsSnapshot = await FirebaseFirestore.instance
-          .collection('mentor_groups')
-          .where('status', isEqualTo: 'active')
-          .get();
-
-      final mentorsSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'mentor')
-          .where('approved', isEqualTo: true)
-          .get();
-
-      final entrepreneursSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'entrepreneur')
-          .get();
-
+      final s = await _api.getStats();
       setState(() {
-        stats = {
-          'totalUsers': usersSnapshot.docs.length,
-          'activeGroups': groupsSnapshot.docs.length,
-          'totalMentors': mentorsSnapshot.docs.length,
-          'totalEntrepreneurs': entrepreneursSnapshot.docs.length,
-        };
+        stats = s;
       });
     } catch (e) {
       print('Error loading statistics: $e');
@@ -117,24 +92,7 @@ class _AdminDashboardState extends State<AdminDashboard>
 
   Future<void> _loadRecentActivities() async {
     try {
-      final activitiesSnapshot = await FirebaseFirestore.instance
-          .collection('mentor_groups')
-          .orderBy('created_at', descending: true)
-          .limit(5)
-          .get();
-
-      List<Map<String, dynamic>> activities = [];
-      for (var doc in activitiesSnapshot.docs) {
-        final data = doc.data();
-        activities.add({
-          'id': doc.id,
-          'type': 'group_created',
-          'timestamp': data['created_at'],
-          'mentorId': data['mentor_id'],
-          'entrepreneurCount': (data['entrepreneur_ids'] as List).length,
-        });
-      }
-
+      final activities = await _api.getRecentActivities(limit: 5);
       setState(() {
         recentActivities = activities;
       });
@@ -246,14 +204,19 @@ class _AdminDashboardState extends State<AdminDashboard>
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white.withOpacity(0.2)),
             ),
-            child: const Icon(Icons.notifications_outlined, color: Colors.white),
+            child: const Icon(
+              Icons.notifications_outlined,
+              color: Colors.white,
+            ),
           ),
           onPressed: () {},
         ),
         const SizedBox(width: 8),
         PopupMenuButton<String>(
           offset: const Offset(0, 50),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           color: const Color(0xFF334155),
           icon: Container(
             padding: const EdgeInsets.all(8),
@@ -267,7 +230,8 @@ class _AdminDashboardState extends State<AdminDashboard>
               backgroundColor: const Color(0xFF3B82F6).withOpacity(0.2),
               child: Text(
                 (userProfile?['name'] ?? currentUser?.email ?? 'U')
-                    .substring(0, 1).toUpperCase(),
+                    .substring(0, 1)
+                    .toUpperCase(),
                 style: const TextStyle(
                   color: Color(0xFF3B82F6),
                   fontWeight: FontWeight.bold,
@@ -281,9 +245,15 @@ class _AdminDashboardState extends State<AdminDashboard>
               value: 'profile',
               child: Row(
                 children: [
-                  Icon(Icons.person_outline, color: Colors.white.withOpacity(0.8)),
+                  Icon(
+                    Icons.person_outline,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
                   const SizedBox(width: 12),
-                  Text('Profile', style: TextStyle(color: Colors.white.withOpacity(0.9))),
+                  Text(
+                    'Profile',
+                    style: TextStyle(color: Colors.white.withOpacity(0.9)),
+                  ),
                 ],
               ),
             ),
@@ -291,9 +261,15 @@ class _AdminDashboardState extends State<AdminDashboard>
               value: 'settings',
               child: Row(
                 children: [
-                  Icon(Icons.settings_outlined, color: Colors.white.withOpacity(0.8)),
+                  Icon(
+                    Icons.settings_outlined,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
                   const SizedBox(width: 12),
-                  Text('Settings', style: TextStyle(color: Colors.white.withOpacity(0.9))),
+                  Text(
+                    'Settings',
+                    style: TextStyle(color: Colors.white.withOpacity(0.9)),
+                  ),
                 ],
               ),
             ),
@@ -303,7 +279,10 @@ class _AdminDashboardState extends State<AdminDashboard>
                 children: [
                   Icon(Icons.logout, color: Colors.red.withOpacity(0.8)),
                   const SizedBox(width: 12),
-                  Text('Logout', style: TextStyle(color: Colors.red.withOpacity(0.9))),
+                  Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.red.withOpacity(0.9)),
+                  ),
                 ],
               ),
             ),
@@ -413,15 +392,9 @@ class _AdminDashboardState extends State<AdminDashboard>
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              flex: 2,
-              child: _buildRecentActivity(),
-            ),
+            Expanded(flex: 2, child: _buildRecentActivity()),
             const SizedBox(width: 24),
-            Expanded(
-              flex: 1,
-              child: _buildQuickActions(),
-            ),
+            Expanded(flex: 1, child: _buildQuickActions()),
           ],
         ),
       ],
@@ -532,14 +505,13 @@ class _AdminDashboardState extends State<AdminDashboard>
                       color: (stat['color'] as Color).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      stat['icon'],
-                      color: stat['color'],
-                      size: 20,
-                    ),
+                    child: Icon(stat['icon'], color: stat['color'], size: 20),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF10B981).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -688,9 +660,7 @@ class _AdminDashboardState extends State<AdminDashboard>
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.1),
-              ),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
             child: Row(
               children: [
@@ -700,11 +670,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                     color: (action['color'] as Color).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    action['icon'],
-                    color: action['color'],
-                    size: 20,
-                  ),
+                  child: Icon(action['icon'], color: action['color'], size: 20),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -817,7 +783,9 @@ class _AdminDashboardState extends State<AdminDashboard>
                   ),
                 )
               else
-                ...recentActivities.map((activity) => _buildActivityItem(activity)).toList(),
+                ...recentActivities
+                    .map((activity) => _buildActivityItem(activity))
+                    .toList(),
             ],
           ),
         ),
@@ -832,9 +800,7 @@ class _AdminDashboardState extends State<AdminDashboard>
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: Row(
         children: [
@@ -909,11 +875,16 @@ class _AdminDashboardState extends State<AdminDashboard>
     );
   }
 
-  String _getTimeAgo(Timestamp? timestamp) {
-    if (timestamp == null) return 'Unknown';
+  String _getTimeAgo(String? isoTimestamp) {
+    if (isoTimestamp == null || isoTimestamp.isEmpty) return 'Unknown';
 
     final now = DateTime.now();
-    final date = timestamp.toDate();
+    DateTime date;
+    try {
+      date = DateTime.parse(isoTimestamp);
+    } catch (_) {
+      return 'Unknown';
+    }
     final difference = now.difference(date);
 
     if (difference.inDays > 0) {

@@ -171,9 +171,25 @@ Business Idea to Evaluate:
             return normalized
             
         except json.JSONDecodeError as e:
-            print(self._colored_print("⚠️ JSON parsing failed. Raw output:", "red"))
-            print(raw_output)
-            raise Exception(f"Could not parse AI response as JSON: {str(e)}")
+            # Attempt to sanitize and recover JSON
+            print(self._colored_print("⚠️ JSON parsing failed. Attempting to sanitize output...", "yellow"))
+            sanitized = self._attempt_sanitize_json(raw_output)
+            try:
+                parsed_result = json.loads(sanitized)
+                normalized = self._normalize_results(parsed_result)
+                print(self._colored_print("✅ Recovery successful after sanitization", "green"))
+                return normalized
+            except Exception:
+                print(self._colored_print("⚠️ JSON recovery failed. Falling back to raw output.", "red"))
+                # Return a minimal structure to allow downstream display and saving
+                return self._normalize_results({
+                    "raw": raw_output,
+                    "scores": {},
+                    "verdict": "N/A",
+                    "strengths": [],
+                    "risks": [],
+                    "suggestions": []
+                })
 
     def _normalize_results(self, data):
         """Normalize AI results to expected schema to avoid runtime errors."""
@@ -242,6 +258,53 @@ Business Idea to Evaluate:
             data["verdict"] = "N/A"
 
         return data
+
+    def _attempt_sanitize_json(self, raw_output: str) -> str:
+        """Try to extract the JSON block and escape problematic characters inside strings.
+
+        - Extract substring between the first '{' and the last '}'
+        - Replace unescaped newline characters inside quoted strings with '\\n'
+        """
+        # Extract JSON block
+        start = raw_output.find('{')
+        end = raw_output.rfind('}')
+        if start == -1 or end == -1 or end <= start:
+            return raw_output
+        json_block = raw_output[start:end+1]
+
+        # State machine to escape newlines within strings
+        result = []
+        in_string = False
+        quote_char = ''
+        escape = False
+        for ch in json_block:
+            if in_string:
+                if escape:
+                    # Keep escaped char as-is
+                    result.append(ch)
+                    escape = False
+                    continue
+                if ch == '\\':
+                    result.append(ch)
+                    escape = True
+                    continue
+                if ch == quote_char:
+                    in_string = False
+                    quote_char = ''
+                    result.append(ch)
+                elif ch == '\n' or ch == '\r':
+                    # Escape raw newline characters inside strings
+                    result.append('\\n')
+                else:
+                    result.append(ch)
+            else:
+                if ch in ('"', '\''):
+                    in_string = True
+                    quote_char = ch
+                    result.append(ch)
+                else:
+                    result.append(ch)
+        return ''.join(result)
     
     def display_results(self, evaluation_results):
         """
