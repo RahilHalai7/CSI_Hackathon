@@ -11,7 +11,7 @@ class IdeaReviewScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Business Ideas')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: ApiService().getIdeas(),
+        future: ApiService().getIdeasByUser('all'), // Using existing method with 'all' parameter
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

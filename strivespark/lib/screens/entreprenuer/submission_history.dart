@@ -8,7 +8,8 @@ class SubmissionHistoryScreen extends StatefulWidget {
   const SubmissionHistoryScreen({super.key});
 
   @override
-  State<SubmissionHistoryScreen> createState() => _SubmissionHistoryScreenState();
+  State<SubmissionHistoryScreen> createState() =>
+      _SubmissionHistoryScreenState();
 }
 
 class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
@@ -25,20 +26,16 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _animationController.forward();
   }
 
@@ -241,8 +238,16 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
       {'key': 'all', 'title': 'All Ideas', 'icon': Icons.apps},
       {'key': 'draft', 'title': 'Draft', 'icon': Icons.edit_outlined},
       {'key': 'submitted', 'title': 'Submitted', 'icon': Icons.send_outlined},
-      {'key': 'under_review', 'title': 'In Review', 'icon': Icons.hourglass_empty},
-      {'key': 'approved', 'title': 'Approved', 'icon': Icons.check_circle_outline},
+      {
+        'key': 'under_review',
+        'title': 'In Review',
+        'icon': Icons.hourglass_empty,
+      },
+      {
+        'key': 'approved',
+        'title': 'Approved',
+        'icon': Icons.check_circle_outline,
+      },
       {'key': 'rejected', 'title': 'Needs Work', 'icon': Icons.refresh},
     ];
 
@@ -266,12 +271,15 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   gradient: isSelected
                       ? const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF10B981)],
-                  )
+                          colors: [Color(0xFF3B82F6), Color(0xFF10B981)],
+                        )
                       : null,
                   color: isSelected ? null : Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -295,7 +303,9 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
                       filter['title'] as String,
                       style: TextStyle(
                         color: Colors.white,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                         fontSize: 13,
                       ),
                     ),
@@ -456,12 +466,19 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: (statusInfo['color'] as Color).withOpacity(0.2),
+                            color: (statusInfo['color'] as Color).withOpacity(
+                              0.2,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: (statusInfo['color'] as Color).withOpacity(0.3),
+                              color: (statusInfo['color'] as Color).withOpacity(
+                                0.3,
+                              ),
                             ),
                           ),
                           child: Row(
@@ -538,9 +555,14 @@ class _SubmissionHistoryScreenState extends State<SubmissionHistoryScreen>
                           size: 16,
                         ),
                         const Spacer(),
-                        if ((data['mentor_feedback'] ?? '').toString().isNotEmpty)
+                        if ((data['mentor_feedback'] ?? '')
+                            .toString()
+                            .isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF10B981).withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),

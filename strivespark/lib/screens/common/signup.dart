@@ -14,7 +14,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool _loading = false;
@@ -42,9 +42,9 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
       final user = userCredential.user;
       if (user != null) {
@@ -194,11 +194,11 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildDesktopLayout(
-      double maxWidth,
-      double horizontalPadding,
-      double formPadding,
-      double titleSize,
-      ) {
+    double maxWidth,
+    double horizontalPadding,
+    double formPadding,
+    double titleSize,
+  ) {
     return Row(
       children: [
         // Left side (features)
@@ -286,11 +286,11 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildMobileTabletLayout(
-      double maxWidth,
-      double horizontalPadding,
-      double formPadding,
-      double titleSize,
-      ) {
+    double maxWidth,
+    double horizontalPadding,
+    double formPadding,
+    double titleSize,
+  ) {
     return SafeArea(
       child: Center(
         child: SingleChildScrollView(
@@ -302,7 +302,7 @@ class _SignupScreenState extends State<SignupScreen> {
             constraints: BoxConstraints(
               maxWidth: maxWidth,
               minHeight:
-              MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top -
                   MediaQuery.of(context).padding.bottom -
                   48,
@@ -379,37 +379,37 @@ class _SignupScreenState extends State<SignupScreen> {
       children: features
           .map(
             (feature) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                color: Color(0xFF10B981), // Emerald color
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  feature,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_outline,
+                    color: Color(0xFF10B981), // Emerald color
+                    size: 20,
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      feature,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      )
+            ),
+          )
           .toList(),
     );
   }
 
   Widget _buildSignupForm(
-      double formPadding,
-      double titleSize, {
-        required bool isCompact,
-      }) {
+    double formPadding,
+    double titleSize, {
+    required bool isCompact,
+  }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
@@ -487,11 +487,19 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: DropdownButtonFormField<String>(
                       value: _selectedRole,
                       decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.badge_outlined, color: Colors.white70),
+                        prefixIcon: Icon(
+                          Icons.badge_outlined,
+                          color: Colors.white70,
+                        ),
                         labelText: "Role",
-                        labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+                        labelStyle: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                        ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                       ),
                       dropdownColor: const Color(0xFF1E293B),
                       style: const TextStyle(color: Colors.white),
@@ -499,11 +507,17 @@ class _SignupScreenState extends State<SignupScreen> {
                       items: const [
                         DropdownMenuItem(
                           value: 'user',
-                          child: Text('Entreprenuer', style: TextStyle(color: Colors.white)),
+                          child: Text(
+                            'Entreprenuer',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'mentor',
-                          child: Text('Mentor', style: TextStyle(color: Colors.white)),
+                          child: Text(
+                            'Mentor',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ],
                       onChanged: (String? newValue) {
@@ -513,7 +527,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           });
                         }
                       },
-                      validator: (value) => value == null ? 'Please select a role' : null,
+                      validator: (value) =>
+                          value == null ? 'Please select a role' : null,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -571,8 +586,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         color: Colors.white70,
                       ),
                       onPressed: () => setState(
-                            () =>
-                        _obscureConfirmPassword = !_obscureConfirmPassword,
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
                       ),
                     ),
                     validator: (value) {
@@ -685,7 +700,10 @@ class _SignupScreenState extends State<SignupScreen> {
           borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
         errorStyle: const TextStyle(color: Colors.redAccent),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
     );
   }
@@ -721,21 +739,21 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         child: isLoading
             ? const SizedBox(
-          height: 20,
-          width: 20,
-          child: CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 2,
-          ),
-        )
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
             : Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }

@@ -2,6 +2,8 @@ import os
 import argparse
 from datetime import datetime
 from pathlib import Path
+import ssl
+import urllib3
 
 from dotenv import load_dotenv
 from pydub import AudioSegment
@@ -9,6 +11,11 @@ import wave
 import io
 from typing import Optional, Set, Tuple, List
 from google.cloud import speech_v1 as speech
+
+# Disable SSL warnings and certificate verification for corporate networks
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+os.environ['PYTHONHTTPSVERIFY'] = '0'
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def _normalize_language_code(lang: str | None) -> str:

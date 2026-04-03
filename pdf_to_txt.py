@@ -42,6 +42,13 @@ from pathlib import Path
 from datetime import datetime
 import sqlite3
 import hashlib
+import ssl
+import urllib3
+
+# Disable SSL warnings and certificate verification for corporate networks
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+os.environ['PYTHONHTTPSVERIFY'] = '0'
+ssl._create_default_https_context = ssl._create_unverified_context
 
 try:
     from dotenv import load_dotenv  # type: ignore
